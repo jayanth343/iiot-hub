@@ -4,7 +4,10 @@
 /node_modules
 /.pnp
 .pnp.js
-
+backend/scripts/MyContractBytecode.bin 
+backend/scripts/MyContractAbi.json
+src/assets/MyContractBytecode.bin
+src/assets/MyContractAbi.json
 # testing
 /coverage
 

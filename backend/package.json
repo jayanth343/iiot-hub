@@ -1,0 +1,15 @@
+{
+  "name": "hardhat-project",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "@nomicfoundation/hardhat-verify": "^2.0.10",
+    "hardhat": "^2.22.8"
+  },
+  "dependencies": {
+    "web3": "^4.11.1"
+  },
+  "scripts": {
+    "deploy": "hardhat run scripts/properDeploy.js --network sepolia",
+    "verify": "hardhat verify --network sepolia 0x010F1493ffcF40CEB9E20C260245f0d049E5E049"
+  }
+}
