@@ -1,0 +1,32 @@
+specVersion: 1.0.0
+indexerHints:
+  prune: auto
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: M
+    network: sepolia
+    source:
+      address: "0x48Cd6D14407c2a485Beb94dB437b689a2C3927bc"
+      abi: M
+      startBlock: 6640896
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - InstrRead
+        - InstrSent
+        - NodeStatus
+      abis:
+        - name: M
+          file: ./abis/M.json
+      eventHandlers:
+        - event: InstrRead(indexed address,indexed address,uint256,uint256)
+          handler: handleInstrRead
+        - event: InstrSent(indexed address,indexed address,string,uint256,uint256)
+          handler: handleInstrSent
+        - event: NodeStatus(indexed address,indexed address,string)
+          handler: handleNodeStatus
+      file: ./src/m.ts

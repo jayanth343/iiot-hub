@@ -86,7 +86,7 @@ const Instr = () => {
 
     const initializeApp = async () => {
       await connectWallet();
-      setContractAddress("0x6FeBA6d8867d48a43D4bfE20915ea161FBB0F65a");
+      setContractAddress("0x010F1493ffcF40CEB9E20C260245f0d049E5E049");
       await initContract();
       await getInstructions();
     };

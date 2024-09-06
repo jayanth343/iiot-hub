@@ -12,6 +12,7 @@ export function handleInstrRead(event: InstrReadEvent): void {
   entity.sender = event.params.sender
   entity.destination = event.params.destination
   entity.indx = event.params.indx
+  entity.timestamp = event.params.timestamp
 
   entity.blockNumber = event.block.number
   entity.blockTimestamp = event.block.timestamp
@@ -28,6 +29,7 @@ export function handleInstrSent(event: InstrSentEvent): void {
   entity.destination = event.params.destination
   entity.content = event.params.content
   entity.indsx = event.params.indsx
+  entity.timestamp = event.params.timestamp
 
   entity.blockNumber = event.block.number
   entity.blockTimestamp = event.block.timestamp
@@ -42,7 +44,7 @@ export function handleNodeStatus(event: NodeStatusEvent): void {
   )
   entity.source = event.params.source
   entity.destination = event.params.destination
-  //entity.res = event.params.res
+  entity.res = event.params.res
 
   entity.blockNumber = event.block.number
   entity.blockTimestamp = event.block.timestamp

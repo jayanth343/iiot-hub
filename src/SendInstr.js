@@ -77,12 +77,12 @@ function Sendinstr() {
 
     const initializeApp = async () => {
       await connectWallet();
-      setContractAddress("0x6FeBA6d8867d48a43D4bfE20915ea161FBB0F65a");
+      setContractAddress("0x010F1493ffcF40CEB9E20C260245f0d049E5E049");
       const accounts = [
         "0xaC3fb9B59E57626aE1e9A4CA8ca10ff169dC2D8C",
         "0x5aD439688E4a5f2E13Af800938452EA945858598",
         "0x42801F08769AB356265e08957ed9dfe0b08C626c",
-        "0x0000000000000000000000000000000000000000",
+        "0x42801F08769AB356265e08957ed9dfe0b08C626c",
       ];
       setWallets(accounts);
 
@@ -239,7 +239,7 @@ function Sendinstr() {
 
   const handleAddAccess = (address, access) => {
     console.log("Available AL:\n", accessList);
-    if (address == wallets[1]) {
+    if (address == '') {
       console.log("We here");
       setTempaddr(address);
       setOpen(true);
@@ -570,7 +570,20 @@ function Sendinstr() {
               style: { color: 'white' },
             }}
             InputProps={{
-              style: { color: 'white' },
+              style: { color: 'white', borderColor: 'white' },
+            }}
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                '& fieldset': {
+                  borderColor: 'white',
+                },
+                '&:hover fieldset': {
+                  borderColor: 'white',
+                },
+                '&.Mui-focused fieldset': {
+                  borderColor: 'white',
+                },
+              },
             }}
           />
         </DialogContent>

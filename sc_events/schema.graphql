@@ -1,0 +1,32 @@
+type InstrRead @entity(immutable: true) {
+  id: Bytes!
+  sender: Bytes! # address
+  destination: Bytes! # address
+  indx: BigInt! # uint256
+  timestamp: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type InstrSent @entity(immutable: true) {
+  id: Bytes!
+  sender: Bytes! # address
+  destination: Bytes! # address
+  content: String! # string
+  indsx: BigInt! # uint256
+  timestamp: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type NodeStatus @entity(immutable: true) {
+  id: Bytes!
+  source: Bytes! # address
+  destination: Bytes! # address
+  res: String! # string
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}

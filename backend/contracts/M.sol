@@ -1,34 +1,19 @@
 // SPDX-License-Identifier: MIT
+pragma solidity ^0.8.24;
 
 
 //Verification Contract
 
-pragma solidity >=0.6.0 <0.9.0;
-
-
 
 contract M { 
 
-    
+
 
     struct Node {
         bool access;
         address addr;
     }
 
-
-
-    address[3] private addressList = [
-        0x5B38Da6a701c568545dCfcB03FcB875f56beddC4,
-        0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2,
-        0x4B20993Bc481177ec7E8f571ceCaE8A9e22C02db
-    ];
-    address[] public publicList = [
-        0x5B38Da6a701c568545dCfcB03FcB875f56beddC4,
-        0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2,
-        0x4B20993Bc481177ec7E8f571ceCaE8A9e22C02db,
-        0x78731D3Ca6b7E34aC0F824c42a7cC18A495cabaB
-    ];
 
     mapping(address => Node[]) public  accesslist;
 
@@ -37,7 +22,7 @@ contract M {
 
 
 
-    //Adding to array with bool value
+//
     function AddtoList(
         address dad,
         address ad,
@@ -50,13 +35,7 @@ contract M {
         q.push(m);
     }
 
-    function init_List() public {
-        // Mapping Access List
-
-        AddtoList(addressList[0], addressList[1], true); // d: 0x2612AF8C0e3f44E6711c87db15470ef1069C296b, ad: 0x80E909b6aD68d27D22AA3866aa3cba8dbeee2ECd
-        AddtoList(addressList[0], addressList[2], false); // d: 0x2612AF8C0e3f44E6711c87db15470ef1069C296b, ad: 0xd15368c8038fff5a8096c79D4cB143F7B184aF14
-    }
-    event NodeStatus(address indexed source, address indexed destination,string indexed res);
+    event NodeStatus(address indexed source, address indexed destination,string res);
     // Function to check if an address is verified in the access list of a given address
     function isVerified(address dad, address ad) public  {
         Node[] storage nodes = accesslist[dad];
@@ -72,8 +51,6 @@ contract M {
                 }
             }
         }
-        //Instr memory ins = getLatestInstr(ad);
-
         if (v == 0) {
             emit NodeStatus(msg.sender,ad,"false");
 
@@ -101,8 +78,8 @@ contract M {
 
     BL[] public blackList;
     mapping (address => Instr[]) public instrList;
-    event InstrSent(address indexed sender, address indexed destination, string content, uint256 indsx);
-    event InstrRead(address indexed sender, address indexed destination, uint256 indx );
+    event InstrSent(address indexed sender, address indexed destination, string content, uint256 indsx,uint256 timestamp);
+    event InstrRead(address indexed sender, address indexed destination, uint256 indx,uint256 timestamp );
     
     
     function sendInstr (address _dest, string memory content) public  {
@@ -118,7 +95,7 @@ contract M {
         );
         instrList[msg.sender].push(instr);
         uint256 index = instrList[msg.sender].length -1;
-        emit InstrSent(msg.sender, _dest, content,index);
+        emit InstrSent(msg.sender, _dest, content,index,block.timestamp);
 
 
 }
@@ -152,7 +129,7 @@ contract M {
             if (instrList[msg.sender][i].destination ==_dest && instrList[msg.sender][i].isRead ==false) {
                 
                 instrList[msg.sender][i].isRead = true;
-                emit InstrRead(msg.sender, _dest,i);
+                emit InstrRead(msg.sender, _dest,i, instrList[msg.sender][i].timestamp);
                 break;  
 
             }
