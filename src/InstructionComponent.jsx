@@ -9,26 +9,35 @@ import {
   Skeleton,
   Box,
   TextField,
+  ListItemIcon,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogContentText,
   DialogActions,
   Button,
+  Snackbar,
   Grid,
   Alert,
   AlertTitle,
   Menu,
   MenuItem,
 } from "@mui/material";
-
-const InstructionsComponent = ({ instructions, handleonSend }) => {
+import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+const InstructionsComponent = ({
+  instructions,
+  readInstructions,
+  handleonSend,
+  handlemarkRead  
+}) => {
   const navigate = useNavigate();
   const [showSkeleton, setShowSkeleton] = useState(true);
+  const [markInstrRead, setmarkInstrRead] = useState(false);  
   const [viewReceivedInstr, setViewReceivedInstr] = useState(false);
   const [receivedInstructions, setReceivedInstructions] = useState([]);
   const [selectedReceivedInstr, setSelectedReceivedInstr] = useState({});
-    
+
   const [anchorEl, setAnchorEl] = useState(null);
   const [viewReadInstr, setViewReadInstr] = useState(false);
   const [viewInstr, setViewInstr] = useState(false);
@@ -56,63 +65,106 @@ const InstructionsComponent = ({ instructions, handleonSend }) => {
 
   const handleCloseReceivedInstr = () => {
     setViewReceivedInstr(false);
+    setmarkInstrRead(true);
+    setSelectedReceivedInstr({});
   };
+
 
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowSkeleton(false);
     }, 2000);
+    
 
     return () => clearTimeout(timer);
   }, []);
 
+  const handleViewReceived = () => {
+    setViewReadInstr(true);
+    setShowSkeleton(true);
+    setReceivedInstructions(readInstructions);
+    setTimeout(() => {
+      setShowSkeleton(false);
+    }, 2000);
+  };
+
+
+  const handlemarkInstrRead = () => {
+    setmarkInstrRead(false);
+  }
+
   if (showSkeleton) {
     return (
       <>
-        <List>
-          {Array.from({ length: instructions.length }).map((_, index) => (
-            <React.Fragment key={index}>
-              <ListItem sx={{ backgroundColor: "#2C2D2A" }}>
-                <Box
+        <Box
+          sx={{
+            width: "100%",
+            maxWidth: 560,
+            bgcolor: "#2C2D2A",
+            borderRadius: "4px",
+            p: 4,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+          }}
+        >
+          <Typography
+            variant="h4"
+            gutterBottom
+            sx={{
+              mb: 4,
+              textAlign: "center",
+              color: "rgba(255, 255, 255, 0.7)",
+            }}
+          ></Typography>
+          <Box sx={{ width: "100%", mb: 4 }}>
+            <Skeleton
+              variant="rectangular"
+              sx={{ bgcolor: "rgba(255, 255, 255, 0.08)", height: 200 }}
+            />
+          </Box>
+          <Box sx={{ width: "100%" }}>
+            {[...Array(3)].map((_, index) => (
+              <Box
+                key={index}
+                sx={{ display: "flex", alignItems: "center", mb: 2 }}
+              >
+                <Skeleton
+                  variant="circular"
                   sx={{
-                    mb: 2,
-                    p: 2,
-                    border: "1px solid rgba(255, 255, 255, 0.12)",
-                    borderRadius: "4px",
-                    backgroundColor: "#2C2D2A",
-                    display: 'flex',
-                    flexDirection: 'column',
+                    bgcolor: "rgba(255, 255, 255, 0.08)",
+                    width: 40,
+                    height: 40,
+                    mr: 2,
                   }}
-                >
+                />
+                <Box sx={{ flex: 1 }}>
                   <Skeleton
-                    variant="text"
-                    width="90%"
-                    height={24}
-                    sx={{ backgroundColor: "#3C3D3A", mb: 1 }}
+                    sx={{
+                      bgcolor: "rgba(255, 255, 255, 0.08)",
+                      height: 20,
+                      mb: 1,
+                    }}
                   />
                   <Skeleton
-                    variant="text"
-                    width="70%"
-                    height={20}
-                    sx={{ backgroundColor: "#3C3D3A", mb: 1 }}
-                  />
-                  <Skeleton
-                    variant="rectangular"
-                    width={560}
-                    height={60}
-                    sx={{ backgroundColor: "#2C2D2A" }}
+                    sx={{
+                      bgcolor: "rgba(255, 255, 255, 0.08)",
+                      height: 20,
+                      width: "60%",
+                    }}
                   />
                 </Box>
-              </ListItem>
-            </React.Fragment>
-          ))}
-        </List>
+              </Box>
+            ))}
+          </Box>
+        </Box>
       </>
     );
   }
+
   return (
     <>
-      {showSkeleton == false && viewReadInstr == false && (
+      {!viewReadInstr && (
         <Box
           sx={{
             "& .MuiBox-root": { backgroundColor: "#2C2D2A" },
@@ -152,7 +204,7 @@ const InstructionsComponent = ({ instructions, handleonSend }) => {
             sx={{ width: "100%", maxWidth: 560, bgcolor: "background.paper" }}
           >
             <Typography variant="h2" gutterBottom>
-              Sent Instructions
+              Sent Instructions {instructions.length}
             </Typography>
             <Divider />
             {instructions.length == 0 ? (
@@ -190,20 +242,26 @@ const InstructionsComponent = ({ instructions, handleonSend }) => {
                         ).toLocaleString()}`}
                       />
                     </ListItem>
-                    <Dialog 
-                      open={viewInstr} 
+                    <Dialog
+                      open={viewInstr}
                       onClose={handleClose}
                       PaperProps={{
                         style: {
-                          backgroundColor: 'rgba(18, 18, 18, 1)',
-                          color: 'white'
+                          backgroundColor: "rgba(18, 18, 18, 1)",
+                          color: "white",
                         },
                       }}
                     >
-                      <DialogTitle sx={{ color: 'white' }} > <Typography variant="h4">Instruction Details</Typography></DialogTitle>
+                      <DialogTitle sx={{ color: "white" }}
+                      
+                      >
+                        {" "}
+                        <Typography variant="h4" sx={{color: "white"}}>
+                          Instruction Details
+                        </Typography>
+                      </DialogTitle>
                       <DialogContent>
-                        <DialogContentText sx={{ color: 'white' }}>
-                          
+                        <DialogContentText sx={{ color: "white" }}>
                           <Typography variant="body1">
                             Content: {selectedInstr.content}
                           </Typography>
@@ -222,7 +280,9 @@ const InstructionsComponent = ({ instructions, handleonSend }) => {
                         </DialogContentText>
                       </DialogContent>
                       <DialogActions>
-                        <Button onClick={handleClose} sx={{ color: 'white' }}>Close</Button>
+                        <Button onClick={handleClose} sx={{ color: "white" }}>
+                          Close
+                        </Button>
                       </DialogActions>
                     </Dialog>
                     <Divider />
@@ -231,107 +291,194 @@ const InstructionsComponent = ({ instructions, handleonSend }) => {
               </List>
             )}
           </Box>
-          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-        <Button 
-          variant="contained" 
-          color="primary" 
-          onClick={() => setViewReadInstr(true)}
-          sx={{
-            backgroundColor: '#3f51b5',
-            color: 'white',
-            '&:hover': {
-              backgroundColor: '#303f9f',
-            },
-          }}
-        >
-          View Received Instructions
-        </Button>
-      </Box>
-      
-        </Box>
-        
-      )}
-      {viewReadInstr && (
-        <Box sx={{ mt: 4, backgroundColor: '#2C2D2A', color: 'white', padding: 2, borderRadius: 2 }}>
-          <Typography variant="h2" sx={{ mb: 2, color: 'white' }}>Received Instructions</Typography>
-          <Divider sx={{ backgroundColor: 'rgba(255, 255, 255, 0.12)' }} />
-          <Box sx={{ maxHeight: 400, overflow: 'auto' }}>
-            {receivedInstructions.length === 0 ? (
-              <Alert severity="warning">
-                <AlertTitle>No Instructions Received!</AlertTitle>
-              </Alert>
-            ) : (
-              <List>
-                {receivedInstructions.map((instr, index) => (
-                  <React.Fragment key={index}>
-                    <ListItem
-                      button
-                      onClick={() => handleReceivedInstrClick(instr)}
-                      sx={{
-                        '&:hover': {
-                          backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                        },
-                      }}
-                    >
-                      <ListItemText
-                        primary={instr.content}
-                        secondary={
-                          <Typography variant="body2" sx={{ color: 'grey.500' }}>
-                            From: {instr.sender} | {new Date(Number(instr.timestamp) * 1000).toLocaleString()}
-                          </Typography>
-                        }
-                      />
-                    </ListItem>
-                    <Dialog
-                      open={selectedReceivedInstr === instr}
-                      onClose={handleCloseReceivedInstr}
-                      PaperProps={{
-                        style: {
-                          backgroundColor: '#2e2e2e',
-                          color: 'white',
-                        },
-                      }}
-                    >
-                      <DialogTitle>Instruction Details</DialogTitle>
-                      <DialogContent>
-                        <DialogContentText sx={{ color: 'white' }}>
-                          <Typography variant="body1">
-                            Content: {instr.content}
-                          </Typography>
-                          <Typography variant="body1">
-                            From: {instr.sender}
-                          </Typography>
-                          <Typography variant="body1">
-                            Time Received:{" "}
-                            {new Date(Number(instr.timestamp) * 1000).toLocaleString()}
-                          </Typography>
-                        </DialogContentText>
-                      </DialogContent>
-                      <DialogActions>
-                        <Button onClick={handleCloseReceivedInstr} sx={{ color: 'white' }}>Close</Button>
-                      </DialogActions>
-                    </Dialog>
-                    <Divider />
-                  </React.Fragment>
-                ))}
-              </List>
-            )}
-          </Box>
-          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-            <Button 
-              variant="contained" 
-              color="primary" 
-              onClick={() => setViewReadInstr(false)}
+          <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleViewReceived}
               sx={{
-                backgroundColor: '#3f51b5',
-                color: 'white',
-                '&:hover': {
-                  backgroundColor: '#303f9f',
+                backgroundColor: "#3f51b5",
+                color: "white",
+                "&:hover": {
+                  backgroundColor: "#303f9f",
                 },
               }}
             >
-              Back to Sent Instructions
+              View Received Instructions
             </Button>
+          </Box>
+        </Box>
+      )}
+      {viewReadInstr && (
+        <Box
+          sx={{
+            "& .MuiBox-root": { backgroundColor: "#2C2D2A" },
+            "& .MuiPaper-root": { backgroundColor: "#2C2D2A" },
+            "& .MuiList-root": { backgroundColor: "#2C2D2A" },
+            "& .MuiListItem-root": { backgroundColor: "#2C2D2A" },
+            "& .MuiMenu-paper": { backgroundColor: "#2C2D2A" },
+            color: "white",
+            "& .MuiTypography-root": { color: "white" },
+            "& .MuiButton-root": {
+              color: "white",
+              borderColor: "white",
+              "&:hover": {
+                backgroundColor: "rgba(255, 255, 255, 0.08)",
+              },
+            },
+            "& .MuiListItemText-primary": { color: "white" },
+            "& .MuiListItemText-secondary": {
+              color: "rgba(255, 255, 255, 0.7)",
+            },
+            "& .MuiDivider-root": {
+              backgroundColor: "rgba(255, 255, 255, 0.12)",
+            },
+            "& .MuiMenuItem-root": {
+              color: "white",
+              "&:hover": {
+                backgroundColor: "rgba(255, 255, 255, 0.08)",
+              },
+            },
+            "& .MuiAlert-standardWarning": {
+              backgroundColor: "rgba(255, 152, 0, 0.1)",
+              color: "#ffa726",
+            },
+          }}
+        >
+          <Box
+            sx={{ width: "100%", maxWidth: 560, bgcolor: "background.paper" }}
+          >
+            <Typography variant="h2" sx={{ mb: 2, color: "white" }} gutt>
+              Received Instructions
+            </Typography>
+            <Divider />
+            <Box
+              sx={{ width: "100%", maxWidth: 560, bgcolor: "background.paper" }}
+            >
+              {receivedInstructions.length === 0 ? (
+                <Alert severity="warning">
+                  <AlertTitle>No Instructions Received!</AlertTitle>
+                </Alert>
+              ) : (
+                <List>
+                  {readInstructions.map((instr, index) => (
+                    <React.Fragment key={index}>
+                      <ListItem
+                        onClick={() => handleReceivedInstrClick(instr)}
+                        sx={{
+                          "&:hover": {
+                            backgroundColor: "rgba(255, 255, 255, 0.08)",
+                          },
+                          border: "1px solid rgba(255, 255, 255, 0.12)",
+                          borderRadius: "10px",
+                          mb: 1,
+                        }}
+                      >
+                        <ListItemIcon>
+                          {instr.isRead ? <CheckCircleIcon sx={{ color: "green" }} /> : <FiberManualRecordIcon sx={{ color: "white", fontSize: "small" }} />}
+                        </ListItemIcon>
+                        <ListItemText
+                          primary={
+                            <>
+                              {`${index + 1}. ${instr.content}`}
+                              <Typography variant="body2" sx={{ color: "grey.500" }}>
+                                From: {instr.sender}
+                              </Typography>
+                            </>
+                          }
+                          secondary={
+                            <Typography
+                              variant="body2"
+                              sx={{ color: "grey.500" }}
+                            >
+                              Date: {new Date(Number(instr.timestamp) * 1000).toLocaleString()}
+                            </Typography>
+                          }
+                        />
+                      </ListItem>
+                      <Dialog
+                        open={selectedReceivedInstr === instr}
+                        onClose={handleCloseReceivedInstr}
+                        PaperProps={{
+                          style: {
+                            backgroundColor: "#2e2e2e",
+                            color: "white",
+                          },
+                        }}
+                      >
+                        <DialogTitle sx={{ color: "white" }}><Typography variant="h4" sx={{color: "white"}}>Instruction Details</Typography>  </DialogTitle>
+                        <DialogContent>
+                          <DialogContentText sx={{ color: "white" }}>
+                            <Typography variant="body1">
+                              Content: {instr.content}
+                            </Typography>
+                            <Typography variant="body1">
+                              From: {instr.sender}
+                            </Typography>
+                            <Typography variant="body1">
+                              
+                              Time Received:{" "}
+                              {new Date(
+                                Number(instr.timestamp) * 1000
+                              ).toLocaleString()}
+                            </Typography>
+                          </DialogContentText>
+                        </DialogContent>
+                        <DialogActions>
+                          <Button
+                            onClick={handleCloseReceivedInstr}
+                            sx={{ color: "white" }}
+                          >
+                            Close
+                          </Button>
+                        </DialogActions>
+                      </Dialog>
+                      {markInstrRead && (
+                        <Snackbar
+                          open={markInstrRead}
+                          autoHideDuration={3000}
+                          onClose={() => handlemarkInstrRead}
+                          eleva
+                          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+                          sx={{ maxWidth: '100%' }}  // Increased size of Snackbar
+                        >
+                          <Alert
+                            severity="info"
+                            variant="filled"
+                            sx={{ width: '100%', backgroundColor: 'blue', color: 'white' }}
+                          >
+                            Instruction No. {index} marked as read.
+                          </Alert>
+                        </Snackbar>
+                      )}
+                      <Divider />
+                    </React.Fragment>
+                  ))}
+                </List>
+              )}
+            </Box>
+            <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => {
+                  setShowSkeleton(true);
+                  setViewReadInstr(false);
+                  setTimeout(() => {
+                    setShowSkeleton(false);
+                  }, 2000);
+                }}
+                sx={{
+                  backgroundColor: "#3f51b5",
+                  color: "white",
+                  "&:hover": {
+                    backgroundColor: "#303f9f",
+                  },
+                }}
+              >
+                Back to Sent Instructions
+              </Button>
+            </Box>
           </Box>
         </Box>
       )}

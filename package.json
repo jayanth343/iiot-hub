@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@apollo/client": "^3.11.8",
     "@emotion/react": "^11.13.3",
     "@emotion/styled": "^11.13.0",
     "@fontsource/roboto": "^5.0.14",
@@ -13,6 +14,7 @@
     "@testing-library/user-event": "^13.5.0",
     "@truffle/contract": "^4.6.31",
     "fs": "^0.0.1-security",
+    "graphql": "^16.9.0",
     "moment": "^2.30.1",
     "mongodb": "^6.8.0",
     "mongoose": "^8.6.1",

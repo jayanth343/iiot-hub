@@ -11,6 +11,7 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
+  DialogContentText,
   Chip,
   DialogTitle,
   SvgIcon,
@@ -77,12 +78,12 @@ function Sendinstr() {
 
     const initializeApp = async () => {
       await connectWallet();
-      setContractAddress("0x010F1493ffcF40CEB9E20C260245f0d049E5E049");
+      setContractAddress("0x48Cd6D14407c2a485Beb94dB437b689a2C3927bc");
       const accounts = [
         "0xaC3fb9B59E57626aE1e9A4CA8ca10ff169dC2D8C",
         "0x5aD439688E4a5f2E13Af800938452EA945858598",
         "0x42801F08769AB356265e08957ed9dfe0b08C626c",
-        "0x42801F08769AB356265e08957ed9dfe0b08C626c",
+        "0xFa09771045DD25cb6c50227EfDED68777BC5d58D",
       ];
       setWallets(accounts);
 
@@ -90,7 +91,7 @@ function Sendinstr() {
       await initContract();
 
       // Now fetch instructions
-      const fetchInstructions = async () => {
+      const fetchAL = async () => {
         if (myContract && account) {
           try {
             console.log("Exec alCount....");
@@ -110,7 +111,7 @@ function Sendinstr() {
         }
       };
 
-      fetchInstructions();
+      fetchAL();
     };
 
     initializeApp().catch(console.error);
@@ -121,7 +122,7 @@ function Sendinstr() {
       }
     };
   }, []);
-
+  const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
   const initContract = useCallback(async () => {
     if (web3Instance && contractAddress && !myContract) {
       try {
@@ -141,7 +142,7 @@ function Sendinstr() {
   }, [initContract]);
 
   useEffect(() => {
-    const fetchInstructions = async () => {
+    const fetchAL = async () => {
       if (web3Instance && contractAddress && myContract) {
         try {
           console.log("Exec alCount....");
@@ -157,12 +158,16 @@ function Sendinstr() {
       }
     };
 
-    fetchInstructions();
+    fetchAL();
   }, [myContract]);
 
   const pages = ["Home", "Instructions", "Logs"];
-  const settings = ["Profile", "Logout"];
+  const settings = ["Profile",'Switch Account', "Logout"];
+  const [SentInstrStatus, setSentInstrStatus] = useState(false);
   const [SelectedSameAcc, setSelectedSameAcc] = useState(false);
+  const [accessAdded, setAccessAdded] = useState(false);
+  const [accessAddedErr, setAccessAddedErr] = useState(false);
+  const [accessAddedErrMsg, setAccessAddedErrMsg] = useState('');
   const [anchorWallet, setAnchorWallet] = useState(null);
   const [anchorElNav, setAnchorElNav] = React.useState(null);
   const [anchorElUser, setAnchorElUser] = React.useState(null);
@@ -228,6 +233,9 @@ function Sendinstr() {
     setViewBal(false);
     setSelectedSameAcc(false);
     handleWalletMenuClose();
+    setAccessAdded(false);
+    setAccessAddedErr(false);
+    setAccessAddedErrMsg('');
   };
 
   const handleErrorOpen = () => {
@@ -238,7 +246,7 @@ function Sendinstr() {
   };
 
   const handleAddAccess = (address, access) => {
-    console.log("Available AL:\n", accessList);
+    console.log("Adding Access");
     if (address == '') {
       console.log("We here");
       setTempaddr(address);
@@ -246,34 +254,59 @@ function Sendinstr() {
     } else if (address == account) {
       setSelectedSameAcc(true);
     } else if (accessList.length == 3) {
-      console.log("AccessList Full");
+      setAccessAddedErr(true);
+      setAccessAddedErrMsg("Access List Full");
     } else {
+      let rs = false;
       let ac = access.toLowerCase() === 'true';
-      console.log(ac,typeof ac);
-      const r = myContract.methods.AddtoList(account, address, ac).send({
+      myContract.methods.AddtoList(account, address, ac).send({
         from: account,
-      }); 
-      console.log(r);
-    }
+      })
+      .then(() => {
+        setAccessAdded(true);
+      })
+      .catch((error) => {
+        console.error("Error adding to list:", error);
+        setAccessAddedErr(true);
+        setAccessAddedErrMsg(error.message);
+      });
+      
+    } 
   };
 
   const handleSendInstr = async () => {
+    if(instruction != '' && sendingInstrAcc != ''){
     console.log("Sending Instruction:", instruction);
     console.log("Sending to:", sendingInstrAcc);
     const timestampEpoch = Date.now();
     console.log(timestampEpoch);
-    const r2 = await myContract.methods.getInstr().call(
-      {
-        from: account,
-      }
-    );
-    console.log(r2);
     const r = await myContract.methods.sendInstr(sendingInstrAcc, instruction).send({
       from: account,
     });
     console.log(r);
-  
+    setSentInstrStatus(true);
   }
+  }
+
+  const handleSwitchAccount = async () => {
+    console.log("Switching Account");
+    try {
+      // Request account access if needed
+      await window.ethereum.request({ method: 'eth_requestAccounts' });
+      
+      // Prompt user to switch accounts
+      await window.ethereum.request({
+        method: 'wallet_requestPermissions',
+        params: [{ eth_accounts: {} }]
+      });
+
+      // Reload the page after account switch
+      window.location.reload();
+    } catch (error) {
+      console.error("Error switching accounts:", error);
+      // You might want to show an error message to the user here
+    }
+  };
 
   return (
       <>
@@ -303,7 +336,7 @@ function Sendinstr() {
               variant="h6"
               noWrap
               component="a"
-              href="#app-bar-with-responsive-menu"
+              href="#Dashboard"
               sx={{
                 mr: 2,
                 display: { xs: "none", md: "flex" },
@@ -314,7 +347,7 @@ function Sendinstr() {
                 textDecoration: "none",
               }}
             >
-              APP
+              IIoT Hub
             </Typography>
 
             <Box sx={{ flexGrow: 1, display: { xs: "flex", md: "none" } }}>
@@ -347,7 +380,18 @@ function Sendinstr() {
                 }}
               >
                 {pages.map((page) => (
-                  <MenuItem key={page} onClick={handleCloseNavMenu}>
+                  <MenuItem key={page} onClick={
+                    ()=> {
+                      if (page === 'Instructions') {
+                        window.location.href = '/instructions';
+                      } else if (page === 'Home') {
+                        window.location.href = '/dash';
+                      } else {
+                        handleCloseNavMenu();
+                      }
+                    }
+                  }
+                    >
                     <Typography textAlign="center">{page}</Typography>
                   </MenuItem>
                 ))}
@@ -381,6 +425,8 @@ function Sendinstr() {
                     ()=> {
                       if (page === 'Instructions') {
                         navigate('/instructions');
+                      } else if (page === 'Home') {
+                        navigate('/dash');
                       } else {
                         handleCloseNavMenu();
                       }
@@ -390,6 +436,7 @@ function Sendinstr() {
                 >
                   {page}
                 </Button>
+                
               ))}
             </Box>
 
@@ -422,6 +469,9 @@ function Sendinstr() {
                     onClick={() => {
                       if (setting === 'Logout') {
                         navigate('/');
+                        
+                      } else if (setting === 'Switch Account') {
+                        handleSwitchAccount();
                       } else {
                         handleCloseUserMenu();
                       }
@@ -481,7 +531,7 @@ function Sendinstr() {
                     
                   </MenuItem>
 
-                  {ViewAcc === true && (
+                  {ViewAcc === true && ViewBal === false && (
                     <Snackbar
                       autoHideDuration={3000}
                       open={ViewAcc}
@@ -499,7 +549,7 @@ function Sendinstr() {
                   <MenuItem onClick={handleClickB}>
                     Balance: {parseFloat(balance).toFixed(3)} ETH
                   </MenuItem>
-                  {ViewBal === true && (
+                  {ViewBal === true && ViewAcc === false && (
                     <Snackbar
                       open={ViewBal}
                       autoHideDuration={3000}
@@ -525,13 +575,63 @@ function Sendinstr() {
           accessList={accessList}
           onAddAccess={handleAddAccess}
           onSend={handleSendInstrEvent}
+          disableEscapeKeyDown
+          disableBackdropClick
         />
+      <Dialog
+        open={accessAdded}
+        onClose={() => setAccessAdded(false)}
+        PaperProps={{
+          style: {
+            backgroundColor: '#2C2D2A',
+            color: 'white'
+          },
+        }}
+        disableEscapeKeyDown
+        disableBackdropClick
+      >
+        <DialogTitle sx={{ color: 'white' }}>Access Added</DialogTitle>
+        <DialogContent>
+          <DialogContentText sx={{ color: 'lightgrey' }}>
+            Access for Node Added Successfully!
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => {
+            setAccessAdded(false);
+            window.location.reload();
+          }} color="primary">
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+      {accessAddedErr && (
+        <Snackbar
+          open={accessAddedErr}
+          autoHideDuration={5000}
+          onClose={handleClose}
+          disableEscapeKeyDown
+          disableBackdropClick
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        >
+          <Alert severity="error" style={{ borderRadius: '16px' }}>
+            Error: {accessAddedErrMsg}
+          </Alert>
+        </Snackbar>
+      )}
+      {accessAdded && (
+        setTimeout(() => {
+          window.location.reload();
+        }, 3000)
+      )}
       </Box>
       {SelectedSameAcc && (
         <Snackbar
           open={setSelectedSameAcc}
           autoHideDuration={2000}
           onClose={handleClose}
+          disableEscapeKeyDown
+          disableBackdropClick
         >
           <Alert severity="error">Cannot Select Host Address!</Alert>
         </Snackbar>
@@ -602,6 +702,28 @@ function Sendinstr() {
           >
             Send
           </Button>
+          <Snackbar
+            open={SentInstrStatus}
+            autoHideDuration={6000}
+            onClose={() => {
+              setSentInstrStatus(false);
+              setInstruction('');
+              handleInstrClose();
+            }}
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+          >
+            <Alert 
+              onClose={() => {
+                setSentInstrStatus(false);
+                setInstruction('');
+                handleInstrClose();
+              }} 
+              severity="success" 
+              sx={{ width: '100%', color: 'white' }}
+            >
+              Instruction sent successfully!
+            </Alert>
+          </Snackbar>
           <Button 
             onClick={handleInstrClose}
             sx={{ 

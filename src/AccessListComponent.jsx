@@ -30,7 +30,7 @@ const AccessListComponent = ({ accessList, onAddAccess, onSend }) => {
     "0xaC3fb9B59E57626aE1e9A4CA8ca10ff169dC2D8C",
     "0x5aD439688E4a5f2E13Af800938452EA945858598",
     "0x42801F08769AB356265e08957ed9dfe0b08C626c",
-    "0x0000000000000000000000000000000000000000",
+    "0xFa09771045DD25cb6c50227EfDED68777BC5d58D",
   ];
 
   const handleClick = (event) => {
@@ -55,7 +55,7 @@ const AccessListComponent = ({ accessList, onAddAccess, onSend }) => {
   const handleonSend = async (item) => {
     try {
       const address = await item.addr;
-      
+
       setSendAddress(address);
       onSend(address);
       setNewAddress("");
@@ -77,44 +77,68 @@ const AccessListComponent = ({ accessList, onAddAccess, onSend }) => {
 
     return () => clearTimeout(timer);
   }, []);
-  
+
   if (showSkeleton) {
     return (
       <>
         <List>
-            <ListItem sx={{ backgroundColor: "#2C2D2A" }}>
-              <Box sx={{
-            mb: 2,
-            p: 2,
-            border: "1px solid rgba(255, 255, 255, 0.12)",
-            borderRadius: "4px",
-            backgroundColor: "#2C2D2A",
-          }}>
-                <Skeleton variant="rectangular" width={560} height={60} sx={{ backgroundColor: "#2C2D2A" }} />
-              </Box>
-            </ListItem>
-            <ListItem sx={{ backgroundColor: "#2C2D2A" }}>
-              <Box sx={{
-            mb: 2,
-            p: 2,
-            border: "1px solid rgba(255, 255, 255, 0.12)",
-            borderRadius: "4px",
-            backgroundColor: "#2C2D2A",
-          }}>
-                <Skeleton variant="rectangular" width={560} height={60} sx={{ backgroundColor: "#2C2D2A" }} />
-              </Box>
-            </ListItem>
-            <ListItem sx={{ backgroundColor: "#2C2D2A" }}>
-              <Box sx={{
-            mb: 2,
-            p: 2,
-            border: "1px solid rgba(255, 255, 255, 0.12)",
-            borderRadius: "4px",
-            backgroundColor: "#2C2D2A",
-          }}>
-                <Skeleton variant="rectangular" width={560} height={60} sx={{ backgroundColor: "#2C2D2A" }} />
-              </Box>
-            </ListItem>
+          <ListItem sx={{ backgroundColor: "#2C2D2A" }}>
+            <Box
+              sx={{
+                mb: 2,
+                p: 2,
+                border: "1px solid rgba(255, 255, 255, 0.12)",
+                borderRadius: "4px",
+                backgroundColor: "#2C2D2A",
+              }}
+            >
+              <Skeleton
+                variant="rectangular"
+                width={560}
+                height={60}
+                sx={{ backgroundColor: "#2C2D2A" }}
+                animation="wave"
+              />
+            </Box>
+          </ListItem>
+          <ListItem sx={{ backgroundColor: "#2C2D2A" }}>
+            <Box
+              sx={{
+                mb: 2,
+                p: 2,
+                border: "1px solid rgba(255, 255, 255, 0.12)",
+                borderRadius: "4px",
+                backgroundColor: "#2C2D2A",
+              }}
+            >
+              <Skeleton
+                variant="rectangular"
+                width={560}
+                height={60}
+                sx={{ backgroundColor: "#2C2D2A" }}
+                animation="wave"
+              />
+            </Box>
+          </ListItem>
+          <ListItem sx={{ backgroundColor: "#2C2D2A" }}>
+            <Box
+              sx={{
+                mb: 2,
+                p: 2,
+                border: "1px solid rgba(255, 255, 255, 0.12)",
+                borderRadius: "4px",
+                backgroundColor: "#2C2D2A",
+              }}
+            >
+              <Skeleton
+                variant="rectangular"
+                width={560}
+                height={60}
+                sx={{ backgroundColor: "#2C2D2A" }}
+                animation="wave"
+              />
+            </Box>
+          </ListItem>
         </List>
       </>
     );

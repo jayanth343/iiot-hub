@@ -75,7 +75,7 @@ function Dash() {
   }, []);
 
   const pages = ["Home", "Instructions", "Logs"];
-  const settings = ["Profile", "Logout"];
+  const settings = ["Profile", "Switch Account", "Logout"];
   const [anchorWallet, setAnchorWallet] = useState(null);
   const [anchorElNav, setAnchorElNav] = React.useState(null);
   const [anchorElUser, setAnchorElUser] = React.useState(null);
@@ -119,8 +119,26 @@ function Dash() {
     setViewBal(false);
     handleWalletMenuClose();
   };
+  const handleSwitchAccount = async () => {
+    console.log("Switching Account");
+    try {
+      // Request account access if needed
+      await window.ethereum.request({ method: 'eth_requestAccounts' });
+      
+      // Prompt user to switch accounts
+      await window.ethereum.request({
+        method: 'wallet_requestPermissions',
+        params: [{ eth_accounts: {} }]
+      });
 
-  console.log(typeof balance);
+      // Reload the page after account switch
+      window.location.reload();
+    } catch (error) {
+      console.error("Error switching accounts:", error);
+      // You might want to show an error message to the user here
+    }
+  };
+
   return (
     <>
       <AppBar position="static" color="primary" enableColorOnDark>
@@ -133,7 +151,7 @@ function Dash() {
               variant="h6"
               noWrap
               component="a"
-              href="#app-bar-with-responsive-menu"
+              href="#Dashboard"
               sx={{
                 mr: 2,
                 display: { xs: "none", md: "flex" },
@@ -144,7 +162,7 @@ function Dash() {
                 textDecoration: "none",
               }}
             >
-              APP
+              IIoT Hub
             </Typography>
 
             <Box sx={{ flexGrow: 1, display: { xs: "flex", md: "none" } }}>
@@ -180,7 +198,7 @@ function Dash() {
                   <MenuItem key={page} onClick={
                     ()=> {
                       if (page === 'Instructions') {
-                        window.location.href = '/instructions';
+                        navigate('/instructions');
                       } else {
                         handleCloseNavMenu();
                       }
@@ -221,6 +239,8 @@ function Dash() {
                   ()=> {
                     if (page === 'Instructions') {
                       navigate('/instructions');
+                    } else if (page === 'Logs') {
+                      navigate('/graphql');
                     } else {
                       handleCloseNavMenu();
                     }
@@ -261,10 +281,12 @@ function Dash() {
                   onClick={() => {
                     if (setting === 'Logout') {
                       window.location.href = '/';
+                    }else if (setting === 'Switch Account') {
+                      handleSwitchAccount();
                     } else {
                       handleCloseUserMenu();
                     }
-                    }}
+                  }}
                   >
                     <Typography textAlign="center">{setting}</Typography>
                   </MenuItem>
@@ -321,7 +343,7 @@ function Dash() {
                       }}
                     />
                   </MenuItem>
-                  {ViewAcc === true && (
+                  {ViewAcc === true &&  ViewBal ===false && (
                     <Snackbar
                       autoHideDuration={3000}
                       open={ViewAcc}
@@ -350,7 +372,7 @@ function Dash() {
                   <MenuItem onClick={handleClickB}>
                     Balance: {parseFloat(balance).toFixed(3)} ETH
                   </MenuItem>
-                  {ViewBal === true && (
+                  {ViewBal === true && ViewAcc === false && (
                     <Snackbar
                       open={ViewBal}
                       autoHideDuration={3000}
@@ -395,7 +417,8 @@ function Dash() {
         .MuiTypography-root:not(.MuiAppBar-root *), 
         .MuiMenuItem-root:not(.MuiAppBar-root *), 
         .MuiListItemText-primary:not(.MuiAppBar-root *), 
-        .MuiListItemText-secondary:not(.MuiAppBar-root *) {
+        .MuiListItemText-secondary:not(.MuiAppBar-root *),
+        .MuiButton-root:not(.MuiAppBar-root *) {
           color: white !important;
         }
         .MuiIconButton-root:not(.MuiAppBar-root *) {

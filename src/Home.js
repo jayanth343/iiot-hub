@@ -20,7 +20,7 @@ import Snackbar from "@mui/material/Snackbar";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 const abi = require("./contracts/MyContractAbi.json");
 // Add your contract abi here
-const CONTRACT_ADDRESS = "0x010F1493ffcF40CEB9E20C260245f0d049E5E049"; // Add your contract address here
+const CONTRACT_ADDRESS = "0x48Cd6D14407c2a485Beb94dB437b689a2C3927bc"; 
 const GAS = 1000000;
 const GASPRICE = "10000000000";
 function Home() {
@@ -93,7 +93,7 @@ function Home() {
         console.log(`ac list${accs}`);
         setAccounts(accs);
         console.log(accounts);
-        setContract("0x010F1493ffcF40CEB9E20C260245f0d049E5E049");
+        setContract(CONTRACT_ADDRESS);
       } catch (error) {
         console.error(`Error: ${error}`);
       }
@@ -119,7 +119,7 @@ function Home() {
             selectedAccount[0]
           );
           setAccounts(selectedAccount);
-          setContract("0x010F1493ffcF40CEB9E20C260245f0d049E5E049");
+          setContract(CONTRACT_ADDRESS);
         } else {
           console.log(
             "No account selected in MetaMask. Please select an account."
@@ -306,7 +306,7 @@ function Home() {
               <Grid item xs={12} sm={6}>
                 {balance ? (
                   <Typography variant="body1">
-                    <strong>Balance:</strong> {parseFloat(balance)} ETH
+                    <strong>Balance:</strong> <br/> {parseFloat(balance)} ETH
                   </Typography>
                 ) : (
                   <Skeleton

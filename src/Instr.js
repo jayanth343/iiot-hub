@@ -1,17 +1,23 @@
-import React, { useState, useEffect, useCallback,  } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import Web3 from "web3";
 import "./App.css";
 import Home from "./Home";
+import { useQuery, gql } from "@apollo/client";
+import client from "./index.js";
 import InstructionsComponent from "./InstructionComponent";
 import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
 import {
   Alert,
   Button,
+  CircularProgress,
   TextField,
   Dialog,
   DialogActions,
   DialogContent,
+  List,
+  ListItem,
+  ListItemText,
   Chip,
   DialogTitle,
   SvgIcon,
@@ -56,13 +62,15 @@ const Instr = () => {
   const [ViewAcc, setViewAcc] = useState(false);
   const [ViewBal, setViewBal] = useState(false);
   const [sendingInstr, setSendingInstr] = useState(false);
+  const [readInstr, setReadInstr] = useState([]);
   const [instruction, setInstruction] = useState("");
+  const [isInitialized, setIsInitialized] = useState(false);
 
   const navigate = useNavigate();
 
   useEffect(() => {
     const connectWallet = async () => {
-      if (typeof window.ethereum !== "undefined") {
+      if (typeof window.ethereum !== "undefined" && !web3 && !account) {
         try {
           await window.ethereum.request({ method: "eth_requestAccounts" });
           const web3 = new Web3(window.ethereum);
@@ -74,21 +82,22 @@ const Instr = () => {
           setBalance(parseFloat(balanceEth));
           window.ethereum.on("accountsChanged", (accounts) => {
             setAccount(accounts[0]);
+            console.log("Account Changed", accounts[0]);
           });
         } catch (error) {
           console.error("Error connecting to MetaMask", error);
         }
-      } else {
-        console.log("Please install MetaMask!");
       }
     };
-    connectWallet();
 
     const initializeApp = async () => {
       await connectWallet();
-      setContractAddress("0x010F1493ffcF40CEB9E20C260245f0d049E5E049");
-      await initContract();
-      await getInstructions();
+      setContractAddress("0x48Cd6D14407c2a485Beb94dB437b689a2C3927bc");
+      if (web3 && account) {
+        if (!myContract) {
+          await initContract();
+        }
+      }
     };
 
     initializeApp().catch(console.error);
@@ -98,16 +107,14 @@ const Instr = () => {
         window.ethereum.removeListener("accountsChanged", connectWallet);
       }
     };
-  }, []);
+  }, [web3, account]);
 
   const initContract = useCallback(async () => {
+    console.log("Initializing Contract:\n",web3, contractAddress, myContract);
     if (web3 && contractAddress && !myContract) {
       try {
-        console.log(
-          `Initializing contract with address: from ${account}`,
-          contractAddress
-        );
         const contract = new web3.eth.Contract(abi, contractAddress);
+        console.log("Contract Initialized:\n",contract);
         setMyContract(contract);
         return Promise.resolve();
       } catch (error) {
@@ -117,25 +124,66 @@ const Instr = () => {
       }
     }
   }, [web3, contractAddress, myContract]);
+
   useEffect(() => {
-    initContract();
-  }, [initContract]);
+    if (myContract && account) {
+      getInstructions();
+    }
+  }, [myContract, account]);
+
+  const INSTR_QUERY = gql`
+    query MyQuery($destination: Bytes!) {
+      instrSents(first: 10, where: { destination: $destination }) {
+        destination
+        sender
+        indsx
+        content
+        timestamp
+        transactionHash
+      }
+    }
+  `;
 
   const getInstructions = async () => {
-    if (myContract && account) {
+    if (myContract && account && web3) {
       setLoading(true);
-      //console.log("Getting instructions");
-      const instr = await myContract.methods.getInstr().call({ from: account });
-      //console.log(instr);
-      setInstructions(instr);
-      setLoading(false);
+      try {
+        const instr = await myContract.methods
+          .getInstr()
+          .call({ from: account });
+        console.log("Instructions: ", instr);
+        setInstructions(instr);
+      } catch (error) {
+        console.error("Error fetching instructions:", error);
+        if (error.message) console.error("Error message:", error.message);
+      }
+      console.log("Getting Read Instructions");
+      await fetchRead();
+      if (readInstr.length == 0) {
+        console.log("No Read Instructions");
+        setLoading(false);
+      } else {
+        console.log("Read Instructions: ", readInstr);
+        setLoading(false);
+      }
     }
   };
-  useEffect(() => {
-    getInstructions();
-  }, [myContract]);
+  const fetchRead = async () => {
+    const { l, data, error } = await client.query({
+      query: INSTR_QUERY,
+      variables: { destination: account },
+      skip: !account,
+    });
+    setReadInstr(data.instrSents);
+  };
 
-  const handleClose = (event, reason) => {  
+  useEffect(() => {
+    if (account) {
+      fetchRead();
+    }
+  }, [account, readInstr]);
+
+  const handleClose = (event, reason) => {
     if (reason === "clickaway") {
       return;
     }
@@ -188,36 +236,25 @@ const Instr = () => {
     setViewBal(true);
     console.log(instructions[0]);
   };
-
-  const getInstrSentEvents = async () => {
-    if (myContract && account) {
-    const options = {
-      filter: {
-        sender: account
-      },
-      fromBlock: 0,
-      toBlock: 'latest'
-    };
-    console.log("Getting events");
+  const handleSwitchAccount = async () => {
+    console.log("Switching Account");
     try {
-      const events = await myContract.getPastEvents('InstrSent',options);
-      console.log("InstrSent events:");
-      events.forEach((event, index) => {
-        console.log(`Event ${index + 1}:`);
-        console.log(`  From: ${event.returnValues}`);
+      // Request account access if needed
+      await window.ethereum.request({ method: 'eth_requestAccounts' });
+      
+      // Prompt user to switch accounts
+      await window.ethereum.request({
+        method: 'wallet_requestPermissions',
+        params: [{ eth_accounts: {} }]
       });
+
+      // Reload the page after account switch
+      window.location.reload();
     } catch (error) {
-      console.error("Error fetching InstrSent events:", error);
+      console.error("Error switching accounts:", error);
+      // You might want to show an error message to the user here
     }
-  }
   };
-
-  useEffect(() => {
-    getInstrSentEvents();
-  }, [myContract]);
-
-
-  
   return (
     <>
       <Box
@@ -327,10 +364,9 @@ const Instr = () => {
                   onClick={() => {
                     if (page === "Instructions") {
                       navigate("/instructions");
-                    } else if (page=='Home') {
-                      navigate('/dash');
-                    } 
-                    else {
+                    } else if (page == "Home") {
+                      navigate("/dash");
+                    } else {
                       handleCloseNavMenu();
                     }
                   }}
@@ -467,10 +503,24 @@ const Instr = () => {
         </Container>
       </AppBar>
       <Box sx={{ mt: 4, display: "flex", justifyContent: "center" }}>
-        <InstructionsComponent
-          instructions={instructions}
-          handleonSend={handleClose}
-        />
+        {loading ? (
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              height: "100px",
+            }}
+          >
+            <CircularProgress />
+          </Box>
+        ) : (
+          <InstructionsComponent
+            instructions={instructions}
+            readInstructions={readInstr}
+            handleonSend={handleClose}
+          />
+        )}
       </Box>
     </>
   );
