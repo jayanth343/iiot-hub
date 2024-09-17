@@ -42,7 +42,7 @@ function Sendinstr() {
   const navigate = useNavigate();
   const [wallets, setWallets] = useState([]);
   const [accessList, setAccessList] = useState([]);
-  const [instruction,setInstruction] = useState('');
+  const [instruction, setInstruction] = useState("");
   const [tempaddr, setTempaddr] = useState("");
   const [account, setaccount] = useState("");
   const [balance, setBalance] = useState("");
@@ -78,7 +78,7 @@ function Sendinstr() {
 
     const initializeApp = async () => {
       await connectWallet();
-      setContractAddress("0x48Cd6D14407c2a485Beb94dB437b689a2C3927bc");
+      setContractAddress("0x417213E993FA352d287A1AeeFCD3B0E5F053DB97"); //0x48Cd6D14407c2a485Beb94dB437b689a2C3927bc
       const accounts = [
         "0xaC3fb9B59E57626aE1e9A4CA8ca10ff169dC2D8C",
         "0x5aD439688E4a5f2E13Af800938452EA945858598",
@@ -122,7 +122,7 @@ function Sendinstr() {
       }
     };
   }, []);
-  const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+  const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
   const initContract = useCallback(async () => {
     if (web3Instance && contractAddress && !myContract) {
       try {
@@ -162,19 +162,20 @@ function Sendinstr() {
   }, [myContract]);
 
   const pages = ["Home", "Instructions", "Logs"];
-  const settings = ["Profile",'Switch Account', "Logout"];
+  const settings = ["Profile", "Switch Account", "Logout"];
   const [SentInstrStatus, setSentInstrStatus] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [SelectedSameAcc, setSelectedSameAcc] = useState(false);
   const [accessAdded, setAccessAdded] = useState(false);
   const [accessAddedErr, setAccessAddedErr] = useState(false);
-  const [accessAddedErrMsg, setAccessAddedErrMsg] = useState('');
+  const [accessAddedErrMsg, setAccessAddedErrMsg] = useState("");
   const [anchorWallet, setAnchorWallet] = useState(null);
   const [anchorElNav, setAnchorElNav] = React.useState(null);
   const [anchorElUser, setAnchorElUser] = React.useState(null);
   const [open, setOpen] = useState(false);
   const [ViewAcc, setViewAcc] = useState(false);
   const [ViewBal, setViewBal] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarMessage, setSnackbarMessage] = useState("");
 
   const handleOpenNavMenu = (event) => {
     setAnchorElNav(event.currentTarget);
@@ -201,8 +202,6 @@ function Sendinstr() {
 
   const handleInstrClose = () => {
     setSendingInstr(false);
-    setInstruction('');
-
   };
 
   const handleClickA = () => {
@@ -219,7 +218,7 @@ function Sendinstr() {
       setSendingInstrAcc(a);
     }
   };
-  
+
   useEffect(() => {
     if (sendingInstrAcc) {
       console.log("open dialog for:", sendingInstrAcc);
@@ -235,7 +234,7 @@ function Sendinstr() {
     handleWalletMenuClose();
     setAccessAdded(false);
     setAccessAddedErr(false);
-    setAccessAddedErrMsg('');
+    setAccessAddedErrMsg("");
   };
 
   const handleErrorOpen = () => {
@@ -247,57 +246,84 @@ function Sendinstr() {
 
   const handleAddAccess = (address, access) => {
     console.log("Adding Access");
-    if (address == '') {
+    setIsLoading(true);
+    if (address == "") {
       console.log("We here");
       setTempaddr(address);
       setOpen(true);
     } else if (address == account) {
       setSelectedSameAcc(true);
-    } else if (accessList.length == 3) {
+    } else if (accessList.length == 4) {
       setAccessAddedErr(true);
       setAccessAddedErrMsg("Access List Full");
     } else {
       let rs = false;
-      let ac = access.toLowerCase() === 'true';
-      myContract.methods.AddtoList(account, address, ac).send({
-        from: account,
-      })
-      .then(() => {
-        setAccessAdded(true);
-      })
-      .catch((error) => {
-        console.error("Error adding to list:", error);
-        setAccessAddedErr(true);
-        setAccessAddedErrMsg(error.message);
-      });
-      
-    } 
+      let ac = access.toLowerCase() === "true";
+      myContract.methods
+        .AddtoList(account, address, ac)
+        .send({
+          from: account,
+        })
+        .then(() => {
+          setAccessAdded(true);
+          setIsLoading(false);
+        })
+        .catch((error) => {
+          console.error("Error adding to list:", error);
+          setAccessAddedErr(true);
+          setAccessAddedErrMsg(error.message);
+          setIsLoading(false);
+        });
+    }
   };
 
   const handleSendInstr = async () => {
-    if(instruction != '' && sendingInstrAcc != ''){
-    console.log("Sending Instruction:", instruction);
-    console.log("Sending to:", sendingInstrAcc);
-    const timestampEpoch = Date.now();
-    console.log(timestampEpoch);
-    const r = await myContract.methods.sendInstr(sendingInstrAcc, instruction).send({
-      from: account,
+    setIsLoading(true);
+    handleInstrClose();
+    if (instruction != "" && sendingInstrAcc != "") {
+      console.log("Sending Instruction:", instruction);
+      console.log("Sending to:", sendingInstrAcc);
+      const timestampEpoch = Date.now();
+      console.log(timestampEpoch);
+      myContract.methods
+        .sendInstr(sendingInstrAcc, instruction)
+        .send({
+          from: account,
+        }).then((r)=>{
+      console.log(r);
+      setSentInstrStatus(true);
+      setIsLoading(false);
+      setInstruction("");
+    }).catch((error)=>{
+      console.error("Error sending instruction:", error);
+      setAccessAddedErr(true);
+      setAccessAddedErrMsg(error.message);
+      setInstruction("");
+      setIsLoading(false);
     });
-    console.log(r);
-    setSentInstrStatus(true);
-  }
-  }
+    } else if (instruction == ""){
+      setAccessAddedErr(true);
+      setAccessAddedErrMsg("Instruction is empty");
+      setIsLoading(false);
+      setInstruction("");
+    } else if (sendingInstrAcc == ""){
+      setAccessAddedErr(true);
+      setAccessAddedErrMsg("No Recipient Selected");
+      setIsLoading(false);
+      setInstruction("");
+    }
+  };
 
   const handleSwitchAccount = async () => {
     console.log("Switching Account");
     try {
       // Request account access if needed
-      await window.ethereum.request({ method: 'eth_requestAccounts' });
-      
+      await window.ethereum.request({ method: "eth_requestAccounts" });
+
       // Prompt user to switch accounts
       await window.ethereum.request({
-        method: 'wallet_requestPermissions',
-        params: [{ eth_accounts: {} }]
+        method: "wallet_requestPermissions",
+        params: [{ eth_accounts: {} }],
       });
 
       // Reload the page after account switch
@@ -309,23 +335,27 @@ function Sendinstr() {
   };
 
   return (
-      <>
-      <Box sx={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        width: '100%',
-        height: '100%',
-        backgroundColor: '#2C2D2A',
-        zIndex: -1
-      }} />
-      <Box sx={{
-        color: 'white',
-        '& .MuiTypography-root': { color: 'white' },
-        '& .MuiIconButton-root': { color: 'white' },
-        '& .MuiSvgIcon-root': { color: 'white' },
-      }}/>
-      
+    <>
+      <Box
+        sx={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          backgroundColor: "#2C2D2A",
+          zIndex: -1,
+        }}
+      />
+      <Box
+        sx={{
+          color: "white",
+          "& .MuiTypography-root": { color: "white" },
+          "& .MuiIconButton-root": { color: "white" },
+          "& .MuiSvgIcon-root": { color: "white" },
+        }}
+      />
+
       <AppBar position="static" color="primary" enableColorOnDark>
         <Container maxWidth="xl">
           <Toolbar disableGutters>
@@ -380,18 +410,18 @@ function Sendinstr() {
                 }}
               >
                 {pages.map((page) => (
-                  <MenuItem key={page} onClick={
-                    ()=> {
-                      if (page === 'Instructions') {
-                        window.location.href = '/instructions';
-                      } else if (page === 'Home') {
-                        window.location.href = '/dash';
+                  <MenuItem
+                    key={page}
+                    onClick={() => {
+                      if (page === "Instructions") {
+                        window.location.href = "/instructions";
+                      } else if (page === "Home") {
+                        window.location.href = "/dash";
                       } else {
                         handleCloseNavMenu();
                       }
-                    }
-                  }
-                    >
+                    }}
+                  >
                     <Typography textAlign="center">{page}</Typography>
                   </MenuItem>
                 ))}
@@ -421,22 +451,19 @@ function Sendinstr() {
               {pages.map((page) => (
                 <Button
                   key={page}
-                  onClick={
-                    ()=> {
-                      if (page === 'Instructions') {
-                        navigate('/instructions');
-                      } else if (page === 'Home') {
-                        navigate('/dash');
-                      } else {
-                        handleCloseNavMenu();
-                      }
+                  onClick={() => {
+                    if (page === "Instructions") {
+                      navigate("/instructions");
+                    } else if (page === "Home") {
+                      navigate("/dash");
+                    } else {
+                      handleCloseNavMenu();
                     }
-                  }
+                  }}
                   sx={{ my: 2, color: "white", display: "block" }}
                 >
                   {page}
                 </Button>
-                
               ))}
             </Box>
 
@@ -462,15 +489,13 @@ function Sendinstr() {
                 open={Boolean(anchorElUser)}
                 onClose={handleCloseUserMenu}
               >
-                {
-                settings.map((setting) => (
-                  <MenuItem 
-                    key={setting} 
+                {settings.map((setting) => (
+                  <MenuItem
+                    key={setting}
                     onClick={() => {
-                      if (setting === 'Logout') {
-                        navigate('/');
-                        
-                      } else if (setting === 'Switch Account') {
+                      if (setting === "Logout") {
+                        navigate("/");
+                      } else if (setting === "Switch Account") {
                         handleSwitchAccount();
                       } else {
                         handleCloseUserMenu();
@@ -484,10 +509,8 @@ function Sendinstr() {
             </Box>
 
             <Box sx={{ flexGrow: 0 }}>
-              
               <Tooltip title="Wallet">
                 <IconButton onClick={handleWalletMenu} sx={{ p: 3, mr: -6 }}>
-                  
                   <AccountBalanceWalletIcon sx={{}} />
                 </IconButton>
               </Tooltip>
@@ -510,7 +533,9 @@ function Sendinstr() {
                 <Typography textAlign="center">
                   <MenuItem onClick={handleClickA}>
                     <Chip
-                      label={account ? `${account.slice(0, 15)}...` : "No Account"}
+                      label={
+                        account ? `${account.slice(0, 15)}...` : "No Account"
+                      }
                       icon={
                         <FiberManualRecordIcon
                           sx={{
@@ -520,15 +545,14 @@ function Sendinstr() {
                         />
                       }
                       sx={{
-                        backgroundColor: 'transparent',
-                        border: '1px solid black',
-                        color: 'black',
-                        '& .MuiChip-icon': {
-                          color: account ? "green" : "red"
-                        }
+                        backgroundColor: "transparent",
+                        border: "1px solid black",
+                        color: "black",
+                        "& .MuiChip-icon": {
+                          color: account ? "green" : "red",
+                        },
                       }}
                     />
-                    
                   </MenuItem>
 
                   {ViewAcc === true && ViewBal === false && (
@@ -575,55 +599,58 @@ function Sendinstr() {
           accessList={accessList}
           onAddAccess={handleAddAccess}
           onSend={handleSendInstrEvent}
+          loadState={isLoading}
           disableEscapeKeyDown
           disableBackdropClick
         />
-      <Dialog
-        open={accessAdded}
-        onClose={() => setAccessAdded(false)}
-        PaperProps={{
-          style: {
-            backgroundColor: '#2C2D2A',
-            color: 'white'
-          },
-        }}
-        disableEscapeKeyDown
-        disableBackdropClick
-      >
-        <DialogTitle sx={{ color: 'white' }}>Access Added</DialogTitle>
-        <DialogContent>
-          <DialogContentText sx={{ color: 'lightgrey' }}>
-            Access for Node Added Successfully!
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => {
-            setAccessAdded(false);
-            window.location.reload();
-          }} color="primary">
-            Close
-          </Button>
-        </DialogActions>
-      </Dialog>
-      {accessAddedErr && (
-        <Snackbar
-          open={accessAddedErr}
-          autoHideDuration={5000}
-          onClose={handleClose}
+        <Dialog
+          open={accessAdded}
+          onClose={() => setAccessAdded(false)}
+          PaperProps={{
+            style: {
+              backgroundColor: "#2C2D2A",
+              color: "white",
+            },
+          }}
           disableEscapeKeyDown
           disableBackdropClick
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
         >
-          <Alert severity="error" style={{ borderRadius: '16px' }}>
-            Error: {accessAddedErrMsg}
-          </Alert>
-        </Snackbar>
-      )}
-      {accessAdded && (
-        setTimeout(() => {
-          window.location.reload();
-        }, 3000)
-      )}
+          <DialogTitle sx={{ color: "white" }}>Access Added</DialogTitle>
+          <DialogContent>
+            <DialogContentText sx={{ color: "lightgrey" }}>
+              Access for Node Added Successfully!
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button
+              onClick={() => {
+                setAccessAdded(false);
+                window.location.reload();
+              }}
+              color="primary"
+            >
+              Close
+            </Button>
+          </DialogActions>
+        </Dialog>
+        {accessAddedErr && (
+          <Snackbar
+            open={accessAddedErr}
+            autoHideDuration={5000}
+            onClose={handleClose}
+            disableEscapeKeyDown
+            disableBackdropClick
+            anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+          >
+            <Alert severity="error" style={{ borderRadius: "16px" }}>
+              Error: {accessAddedErrMsg}
+            </Alert>
+          </Snackbar>
+        )}
+        {accessAdded &&
+          setTimeout(() => {
+            window.location.reload();
+          }, 3000)}
       </Box>
       {SelectedSameAcc && (
         <Snackbar
@@ -643,18 +670,25 @@ function Sendinstr() {
           <Button onClick={handleErrClose}>Close</Button>
         </DialogActions>
       </Dialog>
-      <Dialog 
-        open={sendingInstr} 
+      <Dialog
+        open={sendingInstr}
         onClose={handleInstrClose}
         PaperProps={{
           style: {
-            backgroundColor: '#2C2D2A',
-            color: 'white'
+            backgroundColor: "#2C2D2A",
+            color: "white",
           },
         }}
-      > 
-        <DialogTitle sx={{ color: 'white' }}>Sending Instruction to <span style={{ color: 'lightblue', fontStyle: 'italic' }}>{sendingInstrAcc}</span></DialogTitle>
-        <DialogTitle sx={{ fontSize: 14, mt: -1.5, color: 'white' }}>Time: {new Date().toLocaleTimeString()}</DialogTitle>
+      >
+        <DialogTitle sx={{ color: "white" }}>
+          Sending Instruction to{" "}
+          <span style={{ color: "lightblue", fontStyle: "italic" }}>
+            {sendingInstrAcc}
+          </span>
+        </DialogTitle>
+        <DialogTitle sx={{ fontSize: 14, mt: -1.5, color: "white" }}>
+          Time: {new Date().toLocaleTimeString()}
+        </DialogTitle>
         <DialogContent>
           <TextField
             autoFocus
@@ -667,36 +701,36 @@ function Sendinstr() {
             value={instruction}
             onChange={(e) => setInstruction(e.target.value)}
             InputLabelProps={{
-              style: { color: 'white' },
+              style: { color: "white" },
             }}
             InputProps={{
-              style: { color: 'white', borderColor: 'white' },
+              style: { color: "white", borderColor: "white" },
             }}
             sx={{
-              '& .MuiOutlinedInput-root': {
-                '& fieldset': {
-                  borderColor: 'white',
+              "& .MuiOutlinedInput-root": {
+                "& fieldset": {
+                  borderColor: "white",
                 },
-                '&:hover fieldset': {
-                  borderColor: 'white',
+                "&:hover fieldset": {
+                  borderColor: "white",
                 },
-                '&.Mui-focused fieldset': {
-                  borderColor: 'white',
+                "&.Mui-focused fieldset": {
+                  borderColor: "white",
                 },
               },
             }}
           />
         </DialogContent>
         <DialogActions>
-          <Button 
+          <Button
             variant="outlined"
-            sx={{ 
-              color: 'white', 
-              borderColor: 'white',
-              '&:hover': { 
-                backgroundColor: 'rgba(255, 255, 255, 0.08)', 
-                color: 'white' 
-              } 
+            sx={{
+              color: "white",
+              borderColor: "white",
+              "&:hover": {
+                backgroundColor: "rgba(255, 255, 255, 0.08)",
+                color: "white",
+              },
             }}
             onClick={handleSendInstr}
           >
@@ -707,30 +741,30 @@ function Sendinstr() {
             autoHideDuration={6000}
             onClose={() => {
               setSentInstrStatus(false);
-              setInstruction('');
+              setInstruction("");
               handleInstrClose();
             }}
-            anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+            anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
           >
-            <Alert 
+            <Alert
               onClose={() => {
                 setSentInstrStatus(false);
-                setInstruction('');
+                setInstruction("");
                 handleInstrClose();
-              }} 
-              severity="success" 
-              sx={{ width: '100%', color: 'white' }}
+              }}
+              severity="success"
+              sx={{ width: "100%", color: "white" }}
             >
               Instruction sent successfully!
             </Alert>
           </Snackbar>
-          <Button 
+          <Button
             onClick={handleInstrClose}
-            sx={{ 
-              color: 'white',
-              '&:hover': { 
-                backgroundColor: 'rgba(255, 255, 255, 0.08)'
-              } 
+            sx={{
+              color: "white",
+              "&:hover": {
+                backgroundColor: "rgba(255, 255, 255, 0.08)",
+              },
             }}
           >
             Close

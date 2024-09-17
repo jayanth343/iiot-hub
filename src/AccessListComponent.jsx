@@ -15,15 +15,19 @@ import {
   Menu,
   MenuItem,
 } from "@mui/material";
+import CircularProgress from '@mui/material/CircularProgress';
+//import { usePromiseTracker } from "react-promise-tracker";
+import Backdrop from '@mui/material/Backdrop';
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 
-const AccessListComponent = ({ accessList, onAddAccess, onSend }) => {
+const AccessListComponent = ({ accessList, onAddAccess, onSend,loadState }) => {
   const [newAddress, setNewAddress] = useState("");
   const [sendAddress, setSendAddress] = useState("");
   const [newAccessValue, setNewAccessValue] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
   const [showSkeleton, setShowSkeleton] = useState(true);
-
+  //const { promiseInProgress } = usePromiseTracker();
   const open = Boolean(anchorEl);
 
   const addresses = [
@@ -45,12 +49,33 @@ const AccessListComponent = ({ accessList, onAddAccess, onSend }) => {
     setNewAddress(address);
     handleClose();
   };
+  const LoadingSpinner = () => (
+    <Box
+      sx={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        position: "absolute",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: "rgba(0, 0, 0, 0.5)",
+        zIndex: 9999,
+      }}
+    >
+      <CircularProgress />
+    </Box>
+  );
+  
   const handleAddAccess = () => {
     if (newAddress && newAccessValue) {
+      setIsLoading(true);
       onAddAccess(newAddress, newAccessValue);
       setNewAddress("");
       setNewAccessValue("");
     }
+    setIsLoading(false);
   };
   const handleonSend = async (item) => {
     try {
@@ -277,13 +302,18 @@ const AccessListComponent = ({ accessList, onAddAccess, onSend }) => {
                 variant="contained"
                 color="primary"
                 onClick={handleAddAccess}
-              >
-                Add
+              >Add
               </Button>
             </Grid>
           </Grid>
         </Box>
       </Box>
+      <Backdrop
+        sx={{ color: "#fff", zIndex: (theme) => theme.zIndex.drawer + 1 }}
+        open={loadState}
+      >
+        <CircularProgress color="inherit" />
+      </Backdrop>
     </Box>
   );
 };

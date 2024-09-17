@@ -20,7 +20,7 @@ import Snackbar from "@mui/material/Snackbar";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 const abi = require("./contracts/MyContractAbi.json");
 // Add your contract abi here
-const CONTRACT_ADDRESS = "0x48Cd6D14407c2a485Beb94dB437b689a2C3927bc"; 
+const CONTRACT_ADDRESS = "0x417213E993FA352d287A1AeeFCD3B0E5F053DB97"; //   0x48Cd6D14407c2a485Beb94dB437b689a2C3927bc
 const GAS = 1000000;
 const GASPRICE = "10000000000";
 function Home() {

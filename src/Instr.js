@@ -49,7 +49,7 @@ const Instr = () => {
   const [instructions, setInstructions] = useState([]);
   const [contractAddress, setContractAddress] = useState("");
   const pages = ["Home", "Instructions", "Logs"];
-  const settings = ["Profile", "Logout"];
+  const settings = ["Profile",'Switch Account', "Logout"];
   const [loading, setLoading] = useState(false);
   const [balance, setBalance] = useState(0.0);
   const [account, setAccount] = useState(null);
@@ -92,7 +92,7 @@ const Instr = () => {
 
     const initializeApp = async () => {
       await connectWallet();
-      setContractAddress("0x48Cd6D14407c2a485Beb94dB437b689a2C3927bc");
+      setContractAddress("0x417213E993FA352d287A1AeeFCD3B0E5F053DB97"); //0x48Cd6D14407c2a485Beb94dB437b689a2C3927bc
       if (web3 && account) {
         if (!myContract) {
           await initContract();
@@ -174,6 +174,7 @@ const Instr = () => {
       variables: { destination: account },
       skip: !account,
     });
+    console.log("Read Instructions: ", data);
     setReadInstr(data.instrSents);
   };
 
@@ -190,7 +191,7 @@ const Instr = () => {
     setViewAcc(false);
     setViewBal(false);
     setSelectedSameAcc(false);
-    handleWalletMenuClose();
+    setAnchorWallet(null);
   };
 
   const handleErrorOpen = () => {
@@ -213,6 +214,7 @@ const Instr = () => {
   const handleWalletMenuClose = () => {
     setAnchorWallet(null);
     setViewAcc(false);
+    setViewBal(false);
   };
 
   const handleCloseNavMenu = () => {
@@ -234,7 +236,6 @@ const Instr = () => {
 
   const handleClickB = () => {
     setViewBal(true);
-    console.log(instructions[0]);
   };
   const handleSwitchAccount = async () => {
     console.log("Switching Account");
@@ -255,6 +256,27 @@ const Instr = () => {
       // You might want to show an error message to the user here
     }
   };
+  const handleMarkRead = async (src, dest,tp) => {
+    console.log("Available methods:", Object.keys(myContract.methods));
+    if(src!='' && dest!=''){
+      console.log("Marking Instruction as Read");
+      console.log(`Src: ${src}, Dest: ${dest} , Time: ${tp}`);
+      try {
+
+        const result = await myContract.methods.instrRead(dest,tp).send({from: src});
+        console.log("Work: ",result);
+        await fetchRead();
+        console.log("Read Instructions After FS: ", readInstr);
+  
+      } catch (error) {
+        console.error("Error marking instruction as read:", error);
+      }
+
+    }
+    /*
+
+     */   
+    };
   return (
     <>
       <Box
@@ -298,7 +320,7 @@ const Instr = () => {
                 textDecoration: "none",
               }}
             >
-              APP
+              IIoT Hub
             </Typography>
 
             <Box sx={{ flexGrow: 1, display: { xs: "flex", md: "none" } }}>
@@ -405,7 +427,10 @@ const Instr = () => {
                     onClick={() => {
                       if (setting === "Logout") {
                         navigate("/");
-                      } else {
+                      } else if (setting=='Switch Account'){
+                        handleSwitchAccount();
+                      } 
+                      else {
                         handleCloseUserMenu();
                       }
                     }}
@@ -463,7 +488,7 @@ const Instr = () => {
                     />
                   </MenuItem>
 
-                  {ViewAcc === true && (
+                  {ViewAcc === true && !ViewBal && (
                     <Snackbar
                       autoHideDuration={3000}
                       open={ViewAcc}
@@ -481,7 +506,7 @@ const Instr = () => {
                   <MenuItem onClick={handleClickB}>
                     Balance: {parseFloat(balance).toFixed(3)} ETH
                   </MenuItem>
-                  {ViewBal === true && (
+                  {ViewBal === true && !ViewAcc && (
                     <Snackbar
                       open={ViewBal}
                       autoHideDuration={3000}
@@ -516,8 +541,10 @@ const Instr = () => {
           </Box>
         ) : (
           <InstructionsComponent
+            myContract={myContract}
             instructions={instructions}
             readInstructions={readInstr}
+            handleMarkRead={handleMarkRead}
             handleonSend={handleClose}
           />
         )}

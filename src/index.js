@@ -8,6 +8,7 @@ import Instr from './Instr';
 import Sendinstr from './SendInstr';
 import GraphQLPage from './graphql';
 import Dash from './Dash'
+import Ethscan from './ethscan';  
 import App from './App';
 import WalletConnect from './components/WalletConnect';
 import DeployContract from './components/DeployContract';
@@ -30,6 +31,7 @@ root.render(
         <Route path="/send-instruction" element={<Sendinstr />} />
         <Route path="/instructions" element={<Instr />} />
         <Route path="/graphql" element={<GraphQLPage />} />
+        <Route path="/ethscan" element={<Ethscan />} />
       </Routes>
     </Router>
     </ApolloProvider>

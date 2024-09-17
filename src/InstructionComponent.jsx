@@ -14,6 +14,7 @@ import {
   DialogTitle,
   DialogContent,
   DialogContentText,
+  IconButton,
   DialogActions,
   Button,
   Snackbar,
@@ -24,20 +25,23 @@ import {
   MenuItem,
 } from "@mui/material";
 import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import CloseIcon from '@mui/icons-material/Close';
 const InstructionsComponent = ({
+  myContract,
   instructions,
   readInstructions,
   handleonSend,
-  handlemarkRead  
+  handleMarkRead  
 }) => {
   const navigate = useNavigate();
   const [showSkeleton, setShowSkeleton] = useState(true);
+  const [src, setSrc] = useState('');
+  const [dest, setDest] = useState('');
   const [markInstrRead, setmarkInstrRead] = useState(false);  
   const [viewReceivedInstr, setViewReceivedInstr] = useState(false);
   const [receivedInstructions, setReceivedInstructions] = useState([]);
   const [selectedReceivedInstr, setSelectedReceivedInstr] = useState({});
-
+  const [readIndexList, setReadIndexList] = useState([]);
   const [anchorEl, setAnchorEl] = useState(null);
   const [viewReadInstr, setViewReadInstr] = useState(false);
   const [viewInstr, setViewInstr] = useState(false);
@@ -63,13 +67,24 @@ const InstructionsComponent = ({
     setViewInstr(false);
   };
 
-  const handleCloseReceivedInstr = () => {
+  const handleCloseReceivedInstr = (instr) => {
+    console.log("Received Instruction: ", instr);
+    let resultIndex = readIndexList.findIndex(item => item.to === instr.destination && item.timestamp === instr.timestamp && !item.isRead);
+    console.log("Result For This Instruction: ", resultIndex);
+    
     setViewReceivedInstr(false);
-    setmarkInstrRead(true);
+    if (resultIndex != -1) {
+      console.log("Found Instr  :\n",readIndexList[resultIndex]);
+      let src = readIndexList[resultIndex].from;
+      let dest = readIndexList[resultIndex].to;
+      let tp = readIndexList[resultIndex].timestamp;
+      handlemarkInstrRead(src,dest,resultIndex);
+    }
     setSelectedReceivedInstr({});
   };
 
 
+  const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowSkeleton(false);
@@ -79,18 +94,37 @@ const InstructionsComponent = ({
     return () => clearTimeout(timer);
   }, []);
 
-  const handleViewReceived = () => {
+  const handleViewReceived = async () => {
     setViewReadInstr(true);
     setShowSkeleton(true);
+    let list = [];
     setReceivedInstructions(readInstructions);
+    for (let i = 0; i < readInstructions.length; i++) {
+      let ac = readInstructions[i].sender;
+      await sleep(1000); 
+      const r = await myContract.methods.getInstr().call({from: ac});
+      if (r && r[readInstructions[i].indsx]) {
+        let entry = {
+          from: readInstructions[i].sender, 
+          to: readInstructions[i].destination,
+          isRead: r[readInstructions[i].indsx].isRead,
+          timestamp: readInstructions[i].timestamp
+        };
+        list.push(entry);
+      }
+    }
+    setReadIndexList(list);
     setTimeout(() => {
       setShowSkeleton(false);
     }, 2000);
   };
 
 
-  const handlemarkInstrRead = () => {
-    setmarkInstrRead(false);
+  const handlemarkInstrRead = async (src,dest,tp) => {
+    setmarkInstrRead(true);
+    handleMarkRead(src,dest,tp);
+    //setmarkInstrRead(false);
+    //window.location.reload();
   }
 
   if (showSkeleton) {
@@ -261,7 +295,7 @@ const InstructionsComponent = ({
                         </Typography>
                       </DialogTitle>
                       <DialogContent>
-                        <DialogContentText sx={{ color: "white" }}>
+                        <DialogContentText component="div" sx={{ color: "white" }}>
                           <Typography variant="body1">
                             Content: {selectedInstr.content}
                           </Typography>
@@ -375,14 +409,16 @@ const InstructionsComponent = ({
                         }}
                       >
                         <ListItemIcon>
-                          {instr.isRead ? <CheckCircleIcon sx={{ color: "green" }} /> : <FiberManualRecordIcon sx={{ color: "white", fontSize: "small" }} />}
+                          {readIndexList.some(item => item.to === instr.destination && item.timestamp === instr.timestamp && !item.isRead) && (
+                            <FiberManualRecordIcon sx={{ color: "white", fontSize: "small" }} />
+                          )}
                         </ListItemIcon>
                         <ListItemText
                           primary={
                             <>
                               {`${index + 1}. ${instr.content}`}
                               <Typography variant="body2" sx={{ color: "grey.500" }}>
-                                From: {instr.sender}
+                                From: <i>{instr.sender}</i>
                               </Typography>
                             </>
                           }
@@ -393,6 +429,7 @@ const InstructionsComponent = ({
                             >
                               Date: {new Date(Number(instr.timestamp) * 1000).toLocaleString()}
                             </Typography>
+                            
                           }
                         />
                       </ListItem>
@@ -408,25 +445,27 @@ const InstructionsComponent = ({
                       >
                         <DialogTitle sx={{ color: "white" }}><Typography variant="h4" sx={{color: "white"}}>Instruction Details</Typography>  </DialogTitle>
                         <DialogContent>
-                          <DialogContentText sx={{ color: "white" }}>
+                          <DialogContentText component="div" sx={{ color: "white" }}>
                             <Typography variant="body1">
                               Content: {instr.content}
                             </Typography>
                             <Typography variant="body1">
-                              From: {instr.sender}
+                              From: <i>{instr.sender}</i>
                             </Typography>
                             <Typography variant="body1">
                               
-                              Time Received:{" "}
+                              Time Received:{" \t"}
                               {new Date(
                                 Number(instr.timestamp) * 1000
                               ).toLocaleString()}
+                              <Typography variant="body1">
+                              </Typography>
                             </Typography>
                           </DialogContentText>
                         </DialogContent>
                         <DialogActions>
                           <Button
-                            onClick={handleCloseReceivedInstr}
+                            onClick={() => handleCloseReceivedInstr(instr)}
                             sx={{ color: "white" }}
                           >
                             Close
@@ -436,18 +475,18 @@ const InstructionsComponent = ({
                       {markInstrRead && (
                         <Snackbar
                           open={markInstrRead}
-                          autoHideDuration={3000}
-                          onClose={() => handlemarkInstrRead}
-                          eleva
+                          autoHideDuration={2000}
+                         onClose={() => setmarkInstrRead(false)}
                           anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-                          sx={{ maxWidth: '100%' }}  // Increased size of Snackbar
-                        >
+                          sx={{ maxWidth: '100%', elevation: 6 }} 
+
+                        >   
                           <Alert
                             severity="info"
                             variant="filled"
-                            sx={{ width: '100%', backgroundColor: 'blue', color: 'white' }}
+                            sx={{ width: '100%', backgroundColor: 'gray', color: 'white' }}
                           >
-                            Instruction No. {index} marked as read.
+                            Instruction marked as read.
                           </Alert>
                         </Snackbar>
                       )}
