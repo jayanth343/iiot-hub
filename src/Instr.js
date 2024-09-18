@@ -13,7 +13,7 @@ import {
   CircularProgress,
   TextField,
   Dialog,
-  DialogContentText,  
+  DialogContentText,
   DialogActions,
   DialogContent,
   List,
@@ -263,22 +263,24 @@ const Instr = () => {
     setLoadState(true);
     console.log(`Sending from ${account}`);
 
-    console.log("Contract: ", myContract);
     console.log("Src: ", src);
     console.log("Dest: ", dest);
     console.log("Indx: ", indx);
-    console.log("Ind 2x: ", parseInt(indx,10));
 
     await myContract.methods
-          .instrRead(String(src), String(dest), parseInt(indx,10))
-          .send({
-            from: String(dest),
-          });
-          
-     
-
-    setLoadState(false);
-
+      .instrRead(src, dest, indx)
+      .send({
+        from: String(dest),
+      })
+      .then((res) => {
+        console.log("Instruction marked as read: ", res);
+        setLoadState(false);
+        setmarkInstrRead(true);
+      })
+      .catch((err) => {
+        console.log("Error marking instruction as read: ", err);
+        setLoadState(false);
+      });
   };
   return (
     <>
@@ -551,28 +553,27 @@ const Instr = () => {
             handleonSend={handleClose}
           />
         )}
-        
-          <Dialog
-            open={markInstrRead}
-            onClose={() => setmarkInstrRead(false)}
-            aria-labelledby="alert-dialog-title"
-            aria-describedby="alert-dialog-description"
-          >
-            <DialogTitle id="alert-dialog-title">
-              {"Instruction Status"}
-            </DialogTitle>
-            <DialogContent>
-              <DialogContentText id="alert-dialog-description">
-                Instruction marked as read.
-              </DialogContentText>
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={() => setmarkInstrRead(false)} autoFocus>
-                Close
-              </Button>
-            </DialogActions>
-          </Dialog>
-        
+
+        <Dialog
+          open={markInstrRead}
+          onClose={() => setmarkInstrRead(false)}
+          aria-labelledby="alert-dialog-title"
+          aria-describedby="alert-dialog-description"
+        >
+          <DialogTitle id="alert-dialog-title">
+            {"Instruction Status"}
+          </DialogTitle>
+          <DialogContent>
+            <DialogContentText id="alert-dialog-description">
+              Instruction marked as read.
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setmarkInstrRead(false)} autoFocus>
+              Close
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Box>
     </>
   );
