@@ -13,6 +13,7 @@ import {
   CircularProgress,
   TextField,
   Dialog,
+  DialogContentText,  
   DialogActions,
   DialogContent,
   List,
@@ -43,14 +44,17 @@ import "@fontsource/roboto/400.css";
 import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
 import abi from "./contracts/MyContractAbi.json";
+import { WindPower } from "@mui/icons-material";
 
 const Instr = () => {
   const [open, setOpen] = useState(false);
   const [instructions, setInstructions] = useState([]);
   const [contractAddress, setContractAddress] = useState("");
   const pages = ["Home", "Instructions", "Logs"];
-  const settings = ["Profile",'Switch Account', "Logout"];
+  const settings = ["Profile", "Switch Account", "Logout"];
   const [loading, setLoading] = useState(false);
+  const [markInstrRead, setmarkInstrRead] = useState(false);
+  const [loadState, setLoadState] = useState(false);
   const [balance, setBalance] = useState(0.0);
   const [account, setAccount] = useState(null);
   const [web3, setWeb3] = useState(null);
@@ -110,11 +114,11 @@ const Instr = () => {
   }, [web3, account]);
 
   const initContract = useCallback(async () => {
-    console.log("Initializing Contract:\n",web3, contractAddress, myContract);
+    console.log("Initializing Contract:\n", web3, contractAddress, myContract);
     if (web3 && contractAddress && !myContract) {
       try {
         const contract = new web3.eth.Contract(abi, contractAddress);
-        console.log("Contract Initialized:\n",contract);
+        console.log("Contract Initialized:\n", contract);
         setMyContract(contract);
         return Promise.resolve();
       } catch (error) {
@@ -174,7 +178,6 @@ const Instr = () => {
       variables: { destination: account },
       skip: !account,
     });
-    console.log("Read Instructions: ", data);
     setReadInstr(data.instrSents);
   };
 
@@ -241,12 +244,12 @@ const Instr = () => {
     console.log("Switching Account");
     try {
       // Request account access if needed
-      await window.ethereum.request({ method: 'eth_requestAccounts' });
-      
+      await window.ethereum.request({ method: "eth_requestAccounts" });
+
       // Prompt user to switch accounts
       await window.ethereum.request({
-        method: 'wallet_requestPermissions',
-        params: [{ eth_accounts: {} }]
+        method: "wallet_requestPermissions",
+        params: [{ eth_accounts: {} }],
       });
 
       // Reload the page after account switch
@@ -256,27 +259,27 @@ const Instr = () => {
       // You might want to show an error message to the user here
     }
   };
-  const handleMarkRead = async (src, dest,tp) => {
-    console.log("Available methods:", Object.keys(myContract.methods));
-    if(src!='' && dest!=''){
-      console.log("Marking Instruction as Read");
-      console.log(`Src: ${src}, Dest: ${dest} , Time: ${tp}`);
-      try {
+  const handleMarkRead = async (src, dest, indx) => {
+    setLoadState(true);
+    console.log(`Sending from ${account}`);
 
-        const result = await myContract.methods.instrRead(dest,tp).send({from: src});
-        console.log("Work: ",result);
-        await fetchRead();
-        console.log("Read Instructions After FS: ", readInstr);
-  
-      } catch (error) {
-        console.error("Error marking instruction as read:", error);
-      }
+    console.log("Contract: ", myContract);
+    console.log("Src: ", src);
+    console.log("Dest: ", dest);
+    console.log("Indx: ", indx);
+    console.log("Ind 2x: ", parseInt(indx,10));
 
-    }
-    /*
+    await myContract.methods
+          .instrRead(String(src), String(dest), parseInt(indx,10))
+          .send({
+            from: String(dest),
+          });
+          
+     
 
-     */   
-    };
+    setLoadState(false);
+
+  };
   return (
     <>
       <Box
@@ -427,10 +430,9 @@ const Instr = () => {
                     onClick={() => {
                       if (setting === "Logout") {
                         navigate("/");
-                      } else if (setting=='Switch Account'){
+                      } else if (setting == "Switch Account") {
                         handleSwitchAccount();
-                      } 
-                      else {
+                      } else {
                         handleCloseUserMenu();
                       }
                     }}
@@ -543,11 +545,34 @@ const Instr = () => {
           <InstructionsComponent
             myContract={myContract}
             instructions={instructions}
+            loadState={loadState}
             readInstructions={readInstr}
             handleMarkRead={handleMarkRead}
             handleonSend={handleClose}
           />
         )}
+        
+          <Dialog
+            open={markInstrRead}
+            onClose={() => setmarkInstrRead(false)}
+            aria-labelledby="alert-dialog-title"
+            aria-describedby="alert-dialog-description"
+          >
+            <DialogTitle id="alert-dialog-title">
+              {"Instruction Status"}
+            </DialogTitle>
+            <DialogContent>
+              <DialogContentText id="alert-dialog-description">
+                Instruction marked as read.
+              </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => setmarkInstrRead(false)} autoFocus>
+                Close
+              </Button>
+            </DialogActions>
+          </Dialog>
+        
       </Box>
     </>
   );

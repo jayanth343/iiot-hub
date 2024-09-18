@@ -202,6 +202,7 @@ function Sendinstr() {
 
   const handleInstrClose = () => {
     setSendingInstr(false);
+    
   };
 
   const handleClickA = () => {
@@ -230,6 +231,7 @@ function Sendinstr() {
     }
     setViewAcc(false);
     setViewBal(false);
+    setIsLoading(false);
     setSelectedSameAcc(false);
     handleWalletMenuClose();
     setAccessAdded(false);
@@ -280,6 +282,10 @@ function Sendinstr() {
   const handleSendInstr = async () => {
     setIsLoading(true);
     handleInstrClose();
+
+    //setIsLoading(false);
+
+    
     if (instruction != "" && sendingInstrAcc != "") {
       console.log("Sending Instruction:", instruction);
       console.log("Sending to:", sendingInstrAcc);
@@ -291,8 +297,8 @@ function Sendinstr() {
           from: account,
         }).then((r)=>{
       console.log(r);
-      setSentInstrStatus(true);
       setIsLoading(false);
+      setSentInstrStatus(true);
       setInstruction("");
     }).catch((error)=>{
       console.error("Error sending instruction:", error);
@@ -737,12 +743,12 @@ function Sendinstr() {
             Send
           </Button>
           <Snackbar
-            open={SentInstrStatus}
-            autoHideDuration={6000}
+            open={SentInstrStatus && !sendingInstr && !isLoading}
+            autoHideDuration={2000}
             onClose={() => {
               setSentInstrStatus(false);
               setInstruction("");
-              handleInstrClose();
+
             }}
             anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
           >
@@ -753,7 +759,7 @@ function Sendinstr() {
                 handleInstrClose();
               }}
               severity="success"
-              sx={{ width: "100%", color: "white" }}
+              sx={{ width: "100%", color: "white", backgroundColor: "gray" }}
             >
               Instruction sent successfully!
             </Alert>

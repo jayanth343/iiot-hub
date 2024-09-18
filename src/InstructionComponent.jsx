@@ -5,6 +5,7 @@ import {
   ListItem,
   ListItemText,
   Divider,
+  Backdrop,
   Typography,
   Skeleton,
   Box,
@@ -24,20 +25,21 @@ import {
   Menu,
   MenuItem,
 } from "@mui/material";
-import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
-import CloseIcon from '@mui/icons-material/Close';
+import FiberManualRecordIcon from "@mui/icons-material/FiberManualRecord";
+import CloseIcon from "@mui/icons-material/Close";
+import CircularProgress from "@mui/material/CircularProgress";
 const InstructionsComponent = ({
   myContract,
   instructions,
   readInstructions,
+  loadState,
   handleonSend,
-  handleMarkRead  
+  handleMarkRead,
 }) => {
   const navigate = useNavigate();
   const [showSkeleton, setShowSkeleton] = useState(true);
-  const [src, setSrc] = useState('');
-  const [dest, setDest] = useState('');
-  const [markInstrRead, setmarkInstrRead] = useState(false);  
+  const [src, setSrc] = useState("");
+  const [dest, setDest] = useState("");
   const [viewReceivedInstr, setViewReceivedInstr] = useState(false);
   const [receivedInstructions, setReceivedInstructions] = useState([]);
   const [selectedReceivedInstr, setSelectedReceivedInstr] = useState({});
@@ -68,28 +70,34 @@ const InstructionsComponent = ({
   };
 
   const handleCloseReceivedInstr = (instr) => {
-    console.log("Received Instruction: ", instr);
-    let resultIndex = readIndexList.findIndex(item => item.to === instr.destination && item.timestamp === instr.timestamp && !item.isRead);
+    console.log("Read Index List: ", readIndexList);
+    let resultIndex = readIndexList.findIndex(
+      (item) =>
+        item.to === instr.destination &&
+        item.timestamp === instr.timestamp &&
+        !item.isRead
+    );
     console.log("Result For This Instruction: ", resultIndex);
-    
+
     setViewReceivedInstr(false);
     if (resultIndex != -1) {
-      console.log("Found Instr  :\n",readIndexList[resultIndex]);
+      //console.log("Found Instr  :\n",readIndexList[resultIndex]);
       let src = readIndexList[resultIndex].from;
       let dest = readIndexList[resultIndex].to;
-      let tp = readIndexList[resultIndex].timestamp;
-      handlemarkInstrRead(src,dest,resultIndex);
+      let indx = readIndexList[resultIndex].index;
+      console.log("Src: ", src);
+      console.log("Dest: ", dest);
+      console.log("Index: ", indx);
+      handlemarkInstrRead(src,dest,indx);
     }
     setSelectedReceivedInstr({});
   };
 
-
-  const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+  const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowSkeleton(false);
-    }, 2000);
-    
+    }, 1000);
 
     return () => clearTimeout(timer);
   }, []);
@@ -101,14 +109,15 @@ const InstructionsComponent = ({
     setReceivedInstructions(readInstructions);
     for (let i = 0; i < readInstructions.length; i++) {
       let ac = readInstructions[i].sender;
-      await sleep(1000); 
-      const r = await myContract.methods.getInstr().call({from: ac});
+      await sleep(1000);
+      const r = await myContract.methods.getInstr().call({ from: ac });
       if (r && r[readInstructions[i].indsx]) {
         let entry = {
-          from: readInstructions[i].sender, 
+          from: readInstructions[i].sender,
           to: readInstructions[i].destination,
+          index: readInstructions[i].indsx,
           isRead: r[readInstructions[i].indsx].isRead,
-          timestamp: readInstructions[i].timestamp
+          timestamp: readInstructions[i].timestamp,
         };
         list.push(entry);
       }
@@ -119,13 +128,11 @@ const InstructionsComponent = ({
     }, 2000);
   };
 
-
-  const handlemarkInstrRead = async (src,dest,tp) => {
-    setmarkInstrRead(true);
-    handleMarkRead(src,dest,tp);
+  const handlemarkInstrRead = async (src, dest, tp) => {
+    handleMarkRead(src, dest, tp);
     //setmarkInstrRead(false);
     //window.location.reload();
-  }
+  };
 
   if (showSkeleton) {
     return (
@@ -248,35 +255,45 @@ const InstructionsComponent = ({
                 </Alert>
               </Typography>
             ) : (
-              <List>
+              <List sx={{ 
+                maxHeight: instructions.length > 4 ? '420px' : 'auto', 
+                overflow: instructions.length > 4 ? 'auto' : 'visible',
+                '&::-webkit-scrollbar': {
+                  display: 'none',
+                },
+                scrollbarWidth: 'none',
+                msOverflowStyle: 'none',
+              }}>
                 {instructions.map((item, i) => (
                   <React.Fragment key={i}>
-                    <ListItem
-                      sx={{
-                        border: "1px solid rgba(255, 255, 255, 0.12)",
-                        borderRadius: "4px",
-                        mb: 1,
-                        "&:hover": {
-                          backgroundColor: "rgba(255, 255, 255, 0.08)",
-                        },
-                      }}
-                      onClick={() => handleInstrClick(item)}
-                      alignItems="flex-start"
-                    >
-                      <ListItemText
-                        primary={
-                          <>
-                            {`${i + 1}. ${item.content}`}
-                            <br />
-                            To: {item.destination}
-                          </>
-                        }
-                        secondary={`Date: ${new Date(
-                          Number(item.timestamp) * 1000
-                        ).toLocaleString()}`}
-                      />
-                    </ListItem>
-                    <Dialog
+                    <Box >
+                      <ListItem
+                        sx={{
+                          border: "1px solid rgba(255, 255, 255, 0.12)",
+                          borderRadius: "4px",
+                          mb: 1,
+                          "&:hover": {
+                            backgroundColor: "rgba(255, 255, 255, 0.08)",
+                          },
+                        }}
+                        onClick={() => handleInstrClick(item)}
+                        alignItems="flex-start"
+                      >
+                        <ListItemText
+                          primary={
+                            <>
+                              {`${i + 1}. ${item.content}`}
+                              <br />
+                              To: {item.destination}
+                            </>
+                          }
+                          secondary={`Date: ${new Date(
+                            Number(item.timestamp) * 1000
+                          ).toLocaleString()}`}
+                        />
+                      </ListItem>
+                    </Box>
+                          <Dialog
                       open={viewInstr}
                       onClose={handleClose}
                       PaperProps={{
@@ -286,16 +303,17 @@ const InstructionsComponent = ({
                         },
                       }}
                     >
-                      <DialogTitle sx={{ color: "white" }}
-                      
-                      >
+                      <DialogTitle sx={{ color: "white" }}>
                         {" "}
-                        <Typography variant="h4" sx={{color: "white"}}>
+                        <Typography variant="h4" sx={{ color: "white" }}>
                           Instruction Details
                         </Typography>
                       </DialogTitle>
                       <DialogContent>
-                        <DialogContentText component="div" sx={{ color: "white" }}>
+                        <DialogContentText
+                          component="div"
+                          sx={{ color: "white" }}
+                        >
                           <Typography variant="body1">
                             Content: {selectedInstr.content}
                           </Typography>
@@ -394,7 +412,17 @@ const InstructionsComponent = ({
                   <AlertTitle>No Instructions Received!</AlertTitle>
                 </Alert>
               ) : (
-                <List>
+                <List
+                sx={{ 
+                  maxHeight: readInstructions.length > 4 ? '400px' : 'auto', 
+                  overflow: readInstructions.length > 4 ? 'auto' : 'visible',
+                  '&::-webkit-scrollbar': {
+                    display: 'none',
+                  },
+                  scrollbarWidth: 'none',
+                  msOverflowStyle: 'none',
+                }}
+                >
                   {readInstructions.map((instr, index) => (
                     <React.Fragment key={index}>
                       <ListItem
@@ -409,15 +437,25 @@ const InstructionsComponent = ({
                         }}
                       >
                         <ListItemIcon>
-                          {readIndexList.some(item => item.to === instr.destination && item.timestamp === instr.timestamp && !item.isRead) && (
-                            <FiberManualRecordIcon sx={{ color: "white", fontSize: "small" }} />
+                          {readIndexList.some(
+                            (item) =>
+                              item.to === instr.destination &&
+                              item.timestamp === instr.timestamp &&
+                              !item.isRead
+                          ) && (
+                            <FiberManualRecordIcon
+                              sx={{ color: "white", fontSize: "small" }}
+                            />
                           )}
                         </ListItemIcon>
                         <ListItemText
                           primary={
                             <>
                               {`${index + 1}. ${instr.content}`}
-                              <Typography variant="body2" sx={{ color: "grey.500" }}>
+                              <Typography
+                                variant="body2"
+                                sx={{ color: "grey.500" }}
+                              >
                                 From: <i>{instr.sender}</i>
                               </Typography>
                             </>
@@ -427,11 +465,14 @@ const InstructionsComponent = ({
                               variant="body2"
                               sx={{ color: "grey.500" }}
                             >
-                              Date: {new Date(Number(instr.timestamp) * 1000).toLocaleString()}
+                              Date:{" "}
+                              {new Date(
+                                Number(instr.timestamp) * 1000
+                              ).toLocaleString()}
                             </Typography>
-                            
                           }
                         />
+                        <Divider />
                       </ListItem>
                       <Dialog
                         open={selectedReceivedInstr === instr}
@@ -443,9 +484,16 @@ const InstructionsComponent = ({
                           },
                         }}
                       >
-                        <DialogTitle sx={{ color: "white" }}><Typography variant="h4" sx={{color: "white"}}>Instruction Details</Typography>  </DialogTitle>
+                        <DialogTitle sx={{ color: "white" }}>
+                          <Typography variant="h4" sx={{ color: "white" }}>
+                            Instruction Details
+                          </Typography>{" "}
+                        </DialogTitle>
                         <DialogContent>
-                          <DialogContentText component="div" sx={{ color: "white" }}>
+                          <DialogContentText
+                            component="div"
+                            sx={{ color: "white" }}
+                          >
                             <Typography variant="body1">
                               Content: {instr.content}
                             </Typography>
@@ -453,13 +501,11 @@ const InstructionsComponent = ({
                               From: <i>{instr.sender}</i>
                             </Typography>
                             <Typography variant="body1">
-                              
                               Time Received:{" \t"}
                               {new Date(
                                 Number(instr.timestamp) * 1000
                               ).toLocaleString()}
-                              <Typography variant="body1">
-                              </Typography>
+                              <Typography variant="body1"></Typography>
                             </Typography>
                           </DialogContentText>
                         </DialogContent>
@@ -472,24 +518,6 @@ const InstructionsComponent = ({
                           </Button>
                         </DialogActions>
                       </Dialog>
-                      {markInstrRead && (
-                        <Snackbar
-                          open={markInstrRead}
-                          autoHideDuration={2000}
-                         onClose={() => setmarkInstrRead(false)}
-                          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-                          sx={{ maxWidth: '100%', elevation: 6 }} 
-
-                        >   
-                          <Alert
-                            severity="info"
-                            variant="filled"
-                            sx={{ width: '100%', backgroundColor: 'gray', color: 'white' }}
-                          >
-                            Instruction marked as read.
-                          </Alert>
-                        </Snackbar>
-                      )}
                       <Divider />
                     </React.Fragment>
                   ))}
@@ -519,6 +547,12 @@ const InstructionsComponent = ({
               </Button>
             </Box>
           </Box>
+          <Backdrop
+        sx={{ color: "#fff", zIndex: (theme) => theme.zIndex.drawer + 1 }}
+        open={loadState}
+      >
+        <CircularProgress color="inherit" />
+      </Backdrop>
         </Box>
       )}
     </>
