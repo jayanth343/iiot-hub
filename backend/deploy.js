@@ -1,16 +1,19 @@
-const { Web3 } = require("web3");
-const Eth = require("web3-eth");
-const path = require("path");
-const fs = require("fs");
-const moment = require("moment");
-const { timeStamp, count } = require("console");
-const readlineSync = require("readline-sync");
-const readline = require("readline");
-const GAS = 1000000;
-const GASPRICE = "10000000000";
+import { join } from "path";
+import { readFileSync, writeFileSync } from "fs";
 const url = "https://sepolia.infura.io/v3/7997091568f840f79ae9d88321a8dc1f";
-const web3 = new Web3(url);
-const bytecodePath = path.join(__dirname, "M_sol_M.bin");
-const bytecode = fs.readFileSync(bytecodePath, "utf8");
-const abi = require("./MyContractAbi.json");
-const { PythonShell } = require("python-shell");
+import { compile } from 'solc';
+
+// Load the contract source code
+const contractSource = readFileSync(join(__dirname, 'M.sol'), 'utf8');
+
+// Compile the contract
+const compiledContract = compile(contractSource, 1).contracts[':M'];
+
+// Generate ABI and Bytecode
+const abi = compiledContract.abi;
+const bytecode = compiledContract.bytecode;
+
+// Save the ABI and Bytecode to files
+writeFileSync(join(__dirname, 'MyContractAbi.json'), JSON.stringify(abi));
+writeFileSync(join(__dirname, 'M_sol_M.bin'), bytecode);
+

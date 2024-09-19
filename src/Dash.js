@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import Navbar from "./components/navbar";
 import { useNavigate } from "react-router-dom";
 import Web3 from "web3";
 import "./App.css";
@@ -7,7 +8,7 @@ import Dashboard from "./dashboard";
 import D2 from "./d2";
 import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
 import FiberManualRecordIcon from "@mui/icons-material/FiberManualRecord";
-
+import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
 import { Alert, Button, Chip } from "@mui/material";
 import AlertTitle from "@mui/material/AlertTitle";
 import Snackbar from "@mui/material/Snackbar";
@@ -74,7 +75,7 @@ function Dash() {
     };
   }, []);
 
-  const pages = ["Home", "Instructions", "Logs"];
+  const pages = ["Home","Access List", "Instructions", "Logs"];
   const settings = ["Profile", "Switch Account", "Logout"];
   const [anchorWallet, setAnchorWallet] = useState(null);
   const [anchorElNav, setAnchorElNav] = React.useState(null);
@@ -141,268 +142,10 @@ function Dash() {
 
   return (
     <>
-      <AppBar position="static" color="primary" enableColorOnDark>
-        <Container maxWidth="xl">
-          <Toolbar disableGutters>
-            <BlurCircularIcon
-              sx={{ display: { xs: "none", md: "flex" }, mr: 1 }}
-            />
-            <Typography
-              variant="h6"
-              noWrap
-              component="a"
-              href="#Dashboard"
-              sx={{
-                mr: 2,
-                display: { xs: "none", md: "flex" },
-                fontFamily: "monospace",
-                fontWeight: 700,
-                letterSpacing: ".3rem",
-                color: "inherit",
-                textDecoration: "none",
-              }}
-            >
-              IIoT Hub
-            </Typography>
-
-            <Box sx={{ flexGrow: 1, display: { xs: "flex", md: "none" } }}>
-              <IconButton
-                size="large"
-                aria-label="account of current user"
-                aria-controls="menu-appbar"
-                aria-haspopup="true"
-                onClick={handleOpenNavMenu}
-                color="inherit"
-              >
-                <MenuIcon />
-              </IconButton>
-              <Menu
-                id="menu-appbar"
-                anchorEl={anchorElNav}
-                anchorOrigin={{
-                  vertical: "bottom",
-                  horizontal: "left",
-                }}
-                keepMounted
-                transformOrigin={{
-                  vertical: "top",
-                  horizontal: "left",
-                }}
-                open={Boolean(anchorElNav)}
-                onClose={handleCloseNavMenu}
-                sx={{
-                  display: { xs: "block", md: "none" },
-                }}
-              >
-                {pages.map((page) => (
-                  <MenuItem key={page} onClick={
-                    ()=> {
-                      if (page === 'Instructions') {
-                        navigate('/instructions');
-                      } else {
-                        handleCloseNavMenu();
-                      }
-                    }
-                  }
-                    >
-                    <Typography textAlign="center">{page}</Typography>
-                  </MenuItem>
-                ))}
-              </Menu>
-            </Box>
-            <BlurCircularIcon
-              sx={{ display: { xs: "flex", md: "none" }, mr: 1 }}
-            />
-            <Typography
-              variant="h5"
-              noWrap
-              component="a"
-              href="#app-bar-with-responsive-menu"
-              sx={{
-                mr: 2,
-                display: { xs: "flex", md: "none" },
-                flexGrow: 1,
-                fontFamily: "monospace",
-                fontWeight: 700,
-                letterSpacing: ".3rem",
-                color: "inherit",
-                textDecoration: "none",
-              }}
-            >
-              LOGO
-            </Typography>
-            <Box sx={{ flexGrow: 1, display: { xs: "none", md: "flex" } }}>
-              {pages.map((page) => (
-                <Button
-                key={page}
-                onClick={
-                  ()=> {
-                    if (page === 'Instructions') {
-                      navigate('/instructions');
-                    } else if (page === 'Logs') {
-                      navigate('/graphql');
-                    } else {
-                      handleCloseNavMenu();
-                    }
-                  }
-                }
-                sx={{ my: 2, color: "white", display: "block" }}
-              >
-                {page}
-              </Button>
-              ))}
-            </Box>
-
-            <Box sx={{ flexGrow: 0 }}>
-              <Tooltip title="Open settings">
-                <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                  <Avatar alt="Remy Sharp" src="/static/images/avatar/2.jpg" />
-                </IconButton>
-              </Tooltip>
-              <Menu
-                sx={{ mt: "45px" }}
-                id="menu-appbar"
-                anchorEl={anchorElUser}
-                anchorOrigin={{
-                  vertical: "top",
-                  horizontal: "right",
-                }}
-                keepMounted
-                transformOrigin={{
-                  vertical: "top",
-                  horizontal: "right",
-                }}
-                open={Boolean(anchorElUser)}
-                onClose={handleCloseUserMenu}
-              >
-                {settings.map((setting) => (
-                  <MenuItem 
-                  key={setting} 
-                  onClick={() => {
-                    if (setting === 'Logout') {
-                      window.location.href = '/';
-                    }else if (setting === 'Switch Account') {
-                      handleSwitchAccount();
-                    } else {
-                      handleCloseUserMenu();
-                    }
-                  }}
-                  >
-                    <Typography textAlign="center">{setting}</Typography>
-                  </MenuItem>
-                ))}
-              </Menu>
-            </Box>
-
-            <Box sx={{ flexGrow: 0 }}>
-              <Tooltip title="Wallet">
-                <IconButton onClick={handleWalletMenu} sx={{ p: 3, mr: -6 }}>
-                  <AccountBalanceWalletIcon sx={{}} />
-                </IconButton>
-              </Tooltip>
-              <Menu
-                sx={{ mt: "45px" }}
-                id="menu-appbar"
-                anchorEl={anchorWallet}
-                anchorOrigin={{
-                  vertical: "top",
-                  horizontal: "right",
-                }}
-                keepMounted
-                transformOrigin={{
-                  vertical: "top",
-                  horizontal: "right",
-                }}
-                open={Boolean(anchorWallet)}
-                onClose={handleWalletMenuClose}
-              >
-                <Typography textAlign="center">
-                  <MenuItem onClick={handleClickA}>
-                    {" "}
-                    <Chip
-                      label={
-                        walletAddress
-                          ? `${walletAddress.slice(0, 15)}...`
-                          : "No Account"
-                      }
-                      icon={
-                        <FiberManualRecordIcon
-                          sx={{
-                            fontSize: "small",
-                            color: walletAddress ? "green" : "red",
-                          }}
-                        />
-                      }
-                      sx={{
-                        backgroundColor: "transparent",
-                        border: "1px solid white",
-                        color: "white",
-                        "& .MuiChip-icon": {
-                          color: walletAddress ? "green" : "red",
-                        },
-                      }}
-                    />
-                  </MenuItem>
-                  {ViewAcc === true &&  ViewBal ===false && (
-                    <Snackbar
-                      autoHideDuration={3000}
-                      open={ViewAcc}
-                      onClose={handleClose}
-                      anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-                    >
-                      <Alert
-                        onClose={handleClose}
-                        severity="info"
-                        sx={{
-                          width: "100%",
-                          backgroundColor: 'lightblue',
-                          color: '#0d47a1',
-                          borderRadius: '16px',
-                          boxShadow: '0px 3px 5px -1px rgba(0,0,0,0.2), 0px 6px 10px 0px rgba(0,0,0,0.14), 0px 1px 18px 0px rgba(0,0,0,0.12)',
-                          '& .MuiAlert-icon': {
-                            color: '#1976d2'
-                          }
-                        }}
-                      >
-                        Wallet Address: {walletAddress}
-                      </Alert>
-                    </Snackbar>
-                  )}
-
-                  <MenuItem onClick={handleClickB}>
-                    Balance: {parseFloat(balance).toFixed(3)} ETH
-                  </MenuItem>
-                  {ViewBal === true && ViewAcc === false && (
-                    <Snackbar
-                      open={ViewBal}
-                      autoHideDuration={3000}
-                      onClose={handleClose}
-                      anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-                    >
-                      <Alert
-                        onClose={handleClose}
-                        severity="info"
-                        sx={{
-                          width: "100%",
-                          backgroundColor: '#f0f0f0',
-                          color: '#333',
-                          borderRadius: '16px',
-                          boxShadow: '0px 3px 5px -1px rgba(0,0,0,0.2), 0px 6px 10px 0px rgba(0,0,0,0.14), 0px 1px 18px 0px rgba(0,0,0,0.12)',
-                          '& .MuiAlert-icon': {
-                            color: '#2196f3'
-                          }
-                        }}
-                      >
-                        Wallet Balance: {balance}
-                      </Alert>
-                    </Snackbar>
-                  )}
-                </Typography>
-              </Menu>
-            </Box>
-          </Toolbar>
-        </Container>
-      </AppBar>
+      <Navbar
+      account={walletAddress}
+      balance={balance}
+      />
       <D2 />
       <style>
         {`
