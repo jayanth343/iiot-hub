@@ -10,7 +10,10 @@ src/assets/MyContractBytecode.bin
 src/assets/MyContractAbi.json
 # testing
 /coverage
-
+/backend/package-lock.json
+/backend/node_modules
+/backend/hardhat.config.js
+/backend/package.json
 # production
 /build
 

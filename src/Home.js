@@ -142,7 +142,7 @@ function Home() {
   // End of Selection
 
   const firstsdeployContract = async () => {
-    if (contract !== "") {
+    if (contract !== "" && account !== "" && balance !== "") {
       console.log("Contract already deployed at:", contract);
       setconA(true);
       setOpen(true);

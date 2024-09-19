@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { gql, useQuery } from '@apollo/client';
+import Navbar  from './components/navbar';
 import web3 from 'web3';
+import { useNavigate } from "react-router-dom";
 const GraphQLPage = () => {
   const [account, setAccount] = useState('');
-
+  const navigate = useNavigate();
   useEffect(() => {
     // Assuming you have a way to get the current account
     // This is just a placeholder, replace with your actual method
@@ -49,6 +51,7 @@ const GraphQLPage = () => {
 
   return (
     <div>
+      <Navbar />
       <h1>GraphQL Query Results</h1>
       {data && data.instrSents && (
         <><ul>
