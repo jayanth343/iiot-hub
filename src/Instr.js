@@ -204,6 +204,8 @@ const Instr = () => {
     setOpen(false);
   };
 
+  const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
   const handleOpenNavMenu = (event) => {
     setAnchorElNav(event.currentTarget);
   };
@@ -266,8 +268,9 @@ const Instr = () => {
     console.log("Src: ", src);
     console.log("Dest: ", dest);
     console.log("Indx: ", indx);
-
-    await myContract.methods
+    setmarkInstrRead(true).then(async () => {
+      await sleep(3000);
+      await myContract.methods
       .instrRead(src, dest, indx)
       .send({
         from: String(dest),
@@ -275,12 +278,13 @@ const Instr = () => {
       .then((res) => {
         console.log("Instruction marked as read: ", res);
         setLoadState(false);
-        setmarkInstrRead(true);
+        window.location.reload();
       })
       .catch((err) => {
         console.log("Error marking instruction as read: ", err);
         setLoadState(false);
       });
+    });
   };
   return (
     <>
@@ -325,7 +329,7 @@ const Instr = () => {
             myContract={myContract}
             instructions={instructions}
             loadState={loadState}
-            readInstructions={readInstr}
+            readInstructions={[...readInstr].sort((a, b) => Number(b.timestamp) - Number(a.timestamp))}
             handleMarkRead={handleMarkRead}
             handleonSend={handleClose}
           />
@@ -333,7 +337,7 @@ const Instr = () => {
 
         <Snackbar
           open={markInstrRead}
-          autoHideDuration={3000}
+          autoHideDuration={2000}
           onClose={() => {
             setmarkInstrRead(false);
             window.location.reload();

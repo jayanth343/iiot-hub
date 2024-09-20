@@ -203,6 +203,8 @@ const Navbar = ({ account, balance }) => {
                     navigate("/send-instruction");
                   } else if (page === "Home") {
                     navigate("/dash");
+                  } else if (page === "Logs") {
+                    navigate("/logs");
                   } else {
                     handleCloseNavMenu();
                   }

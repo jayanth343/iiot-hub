@@ -81,7 +81,6 @@ const InstructionsComponent = ({
 
     setViewReceivedInstr(false);
     if (resultIndex != -1) {
-      //console.log("Found Instr  :\n",readIndexList[resultIndex]);
       let src = readIndexList[resultIndex].from;
       let dest = readIndexList[resultIndex].to;
       let indx = readIndexList[resultIndex].index;
@@ -122,16 +121,30 @@ const InstructionsComponent = ({
         list.push(entry);
       }
     }
-    setReadIndexList(list);
+    //setReadIndexList(list);
     setTimeout(() => {
       setShowSkeleton(false);
     }, 2000);
+    const sortedReadIndexList = list.sort((a, b) =>{
+      if (a.isRead === b.isRead) {
+        return 0;
+      }
+      
+        return a.isRead ? 1: -1;
+      
+    });
+    console.log("Sorted Read Index List: ", sortedReadIndexList);
+    setReadIndexList(sortedReadIndexList);
+    let temp =[];
+    temp = [...readInstructions].sort((a, b) => Number(b.timestamp) - Number(a.timestamp));
+    console.log("Read Instructions: ", readInstructions);
+    console.log("Temp: ", temp);
+    
   };
 
   const handlemarkInstrRead = async (src, dest, tp) => {
     handleMarkRead(src, dest, tp);
-    //setmarkInstrRead(false);
-    //window.location.reload();
+
   };
 
   if (showSkeleton) {
@@ -256,7 +269,7 @@ const InstructionsComponent = ({
               </Typography>
             ) : (
               <List sx={{ 
-                maxHeight: instructions.length > 4 ? '420px' : 'auto', 
+                maxHeight: instructions.length > 4 ? '410px' : 'auto', 
                 overflow: instructions.length > 4 ? 'auto' : 'visible',
                 '&::-webkit-scrollbar': {
                   display: 'none',
@@ -441,7 +454,7 @@ const InstructionsComponent = ({
                             (item) =>
                               item.to === instr.destination &&
                               item.timestamp === instr.timestamp &&
-                              !item.isRead
+                              !item.isRead  
                           ) && (
                             <FiberManualRecordIcon
                               sx={{ color: "white", fontSize: "small" }}
