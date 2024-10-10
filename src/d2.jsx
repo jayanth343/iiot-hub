@@ -163,9 +163,6 @@ function D2() {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose} sx={{ color: "white" }}>
-            Send Instruction
-          </Button>
-          <Button onClick={handleClose} sx={{ color: "white" }}>
             Close
           </Button>
         </DialogActions>

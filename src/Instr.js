@@ -48,28 +48,19 @@ import { WindPower } from "@mui/icons-material";
 
 const Instr = () => {
   const [open, setOpen] = useState(false);
+  const [readStatus, setreadStatus] = useState(0);
   const [instructions, setInstructions] = useState([]);
   const [contractAddress, setContractAddress] = useState("");
-  const pages = ["Home","Access List", "Instructions", "Logs"];
-  const settings = ["Profile", "Switch Account", "Logout"];
   const [loading, setLoading] = useState(false);
   const [markInstrRead, setmarkInstrRead] = useState(false);
   const [loadState, setLoadState] = useState(false);
   const [balance, setBalance] = useState(0.0);
   const [account, setAccount] = useState(null);
+  const [sendingInstr, setSendingInstr] = useState(false);
+  const [instruction, setInstruction] = useState("");
   const [web3, setWeb3] = useState(null);
   const [myContract, setMyContract] = useState(null);
-  const [SelectedSameAcc, setSelectedSameAcc] = useState(false);
-  const [anchorWallet, setAnchorWallet] = useState(null);
-  const [anchorElNav, setAnchorElNav] = React.useState(null);
-  const [anchorElUser, setAnchorElUser] = React.useState(null);
-  const [ViewAcc, setViewAcc] = useState(false);
-  const [ViewBal, setViewBal] = useState(false);
-  const [sendingInstr, setSendingInstr] = useState(false);
   const [readInstr, setReadInstr] = useState([]);
-  const [instruction, setInstruction] = useState("");
-  const [isInitialized, setIsInitialized] = useState(false);
-
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -185,16 +176,16 @@ const Instr = () => {
     if (account) {
       fetchRead();
     }
-  }, [account, readInstr]);
+    if (readStatus == 1) {
+      window.location.reload();
+    }
+  }, [account, readInstr, readStatus]);
 
   const handleClose = (event, reason) => {
     if (reason === "clickaway") {
       return;
     }
-    setViewAcc(false);
-    setViewBal(false);
-    setSelectedSameAcc(false);
-    setAnchorWallet(null);
+
   };
 
   const handleErrorOpen = () => {
@@ -206,61 +197,14 @@ const Instr = () => {
 
   const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-  const handleOpenNavMenu = (event) => {
-    setAnchorElNav(event.currentTarget);
-  };
-  const handleOpenUserMenu = (event) => {
-    setAnchorElUser(event.currentTarget);
-  };
-
-  const handleWalletMenu = (event) => {
-    setAnchorWallet(event.currentTarget);
-  };
-  const handleWalletMenuClose = () => {
-    setAnchorWallet(null);
-    setViewAcc(false);
-    setViewBal(false);
-  };
-
-  const handleCloseNavMenu = () => {
-    setAnchorElNav(null);
-  };
-
-  const handleCloseUserMenu = () => {
-    setAnchorElUser(null);
-  };
 
   const handleInstrClose = () => {
     setSendingInstr(false);
     setInstruction("");
   };
 
-  const handleClickA = () => {
-    setViewAcc(true);
-  };
 
-  const handleClickB = () => {
-    setViewBal(true);
-  };
-  const handleSwitchAccount = async () => {
-    console.log("Switching Account");
-    try {
-      // Request account access if needed
-      await window.ethereum.request({ method: "eth_requestAccounts" });
 
-      // Prompt user to switch accounts
-      await window.ethereum.request({
-        method: "wallet_requestPermissions",
-        params: [{ eth_accounts: {} }],
-      });
-
-      // Reload the page after account switch
-      window.location.reload();
-    } catch (error) {
-      console.error("Error switching accounts:", error);
-      // You might want to show an error message to the user here
-    }
-  };
   const handleMarkRead = async (src, dest, indx) => {
     setLoadState(true);
     console.log(`Sending from ${account}`);
@@ -268,9 +212,10 @@ const Instr = () => {
     console.log("Src: ", src);
     console.log("Dest: ", dest);
     console.log("Indx: ", indx);
-    setmarkInstrRead(true).then(async () => {
-      await sleep(3000);
-      await myContract.methods
+    setmarkInstrRead(true);
+
+
+     myContract.methods
       .instrRead(src, dest, indx)
       .send({
         from: String(dest),
@@ -278,13 +223,15 @@ const Instr = () => {
       .then((res) => {
         console.log("Instruction marked as read: ", res);
         setLoadState(false);
-        window.location.reload();
+        sleep(1000);
+        console.log("Done");
+        setreadStatus(1);
       })
       .catch((err) => {
         console.log("Error marking instruction as read: ", err);
         setLoadState(false);
       });
-    });
+    
   };
   return (
     <>
@@ -340,7 +287,6 @@ const Instr = () => {
           autoHideDuration={2000}
           onClose={() => {
             setmarkInstrRead(false);
-            window.location.reload();
           }}
           message="Instruction marked as read."
           anchorOrigin={{
@@ -349,8 +295,7 @@ const Instr = () => {
           }}
           sx={{
             '& .MuiSnackbarContent-root': {
-              borderRadius: '50%',
-              fontSize: '1.2rem',
+              borderRadius: '20px',
             },
           }}
           action={
@@ -360,7 +305,6 @@ const Instr = () => {
               color="inherit"
               onClick={() => {
                 setmarkInstrRead(false);
-                window.location.reload();
               }}
             >
               <CloseIcon fontSize="small" />

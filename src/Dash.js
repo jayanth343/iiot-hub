@@ -29,14 +29,18 @@ import "@fontsource/roboto/300.css";
 import "@fontsource/roboto/400.css";
 import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
-
+import  useStore  from "./store";
 function Dash() {
   const navigate = useNavigate();
-  const [wallets, setWallets] = useState([]);
-  const [walletAddress, setWalletAddress] = useState("");
-  const [balance, setBalance] = useState("");
-  const [ViewAcc, setViewAcc] = useState(false);
-  const [ViewBal, setViewBal] = useState(false);
+  const account = useStore((state) => state.account);
+  const balance = useStore((state) => state.balance);
+  const accounts = useStore((state) => state.accounts);
+  const setAccount = useStore((state) => state.setAccount);
+  const setBalance = useStore((state) => state.setBalance);
+  const setAccounts = useStore((state) => state.setAccounts);
+  const contractAddress = useStore((state) => state.contractAddress);
+  const myContract = useStore((state) => state.myContract);
+
 
   useEffect(() => {
     const connectWallet = async () => {
@@ -46,13 +50,13 @@ function Dash() {
           const web3 = new Web3(window.ethereum);
 
           const accounts = await web3.eth.getAccounts();
-          setWalletAddress(accounts[0]);
+          setAccount(accounts[0]);
           const balanceWei = await web3.eth.getBalance(accounts[0]);
           const balanceEth = web3.utils.fromWei(balanceWei, "ether");
           setBalance(balanceEth);
           window.ethereum.on("accountsChanged", (accounts) => {
-            setWalletAddress(accounts[0]);
-          });
+            setAccount(accounts[0]);
+          }); 
         } catch (error) {
           console.error("Error connecting to MetaMask", error);
         }
@@ -63,11 +67,14 @@ function Dash() {
 
     connectWallet();
 
+
     const accounts = [
+
+
       "0xaC3fb9B59E57626aE1e9A4CA8ca10ff169dC2D8C",
       "0x5aD439688E4a5f2E13Af800938452EA945858598",
     ];
-    setWallets(accounts);
+    setAccounts(accounts);
     return () => {
       if (window.ethereum && window.ethereum.removeListener) {
         window.ethereum.removeListener("accountsChanged", connectWallet);
@@ -75,75 +82,12 @@ function Dash() {
     };
   }, []);
 
-  const pages = ["Home","Access List", "Instructions", "Logs"];
-  const settings = ["Profile", "Switch Account", "Logout"];
-  const [anchorWallet, setAnchorWallet] = useState(null);
-  const [anchorElNav, setAnchorElNav] = React.useState(null);
-  const [anchorElUser, setAnchorElUser] = React.useState(null);
 
-  const handleOpenNavMenu = (event) => {
-    setAnchorElNav(event.currentTarget);
-  };
-  const handleOpenUserMenu = (event) => {
-    setAnchorElUser(event.currentTarget);
-  };
-
-  const handleWalletMenu = (event) => {
-    setAnchorWallet(event.currentTarget);
-  };
-  const handleWalletMenuClose = () => {
-    setAnchorWallet(null);
-    setViewAcc(false);
-  };
-
-  const handleCloseNavMenu = () => {
-    setAnchorElNav(null);
-  };
-
-  const handleCloseUserMenu = () => {
-    setAnchorElUser(null);
-  };
-
-  const handleClickA = () => {
-    setViewAcc(true);
-  };
-
-  const handleClickB = () => {
-    setViewBal(true);
-  };
-
-  const handleClose = (event, reason) => {
-    if (reason === "clickaway") {
-      return;
-    }
-    setViewAcc(false);
-    setViewBal(false);
-    handleWalletMenuClose();
-  };
-  const handleSwitchAccount = async () => {
-    console.log("Switching Account");
-    try {
-      // Request account access if needed
-      await window.ethereum.request({ method: 'eth_requestAccounts' });
-      
-      // Prompt user to switch accounts
-      await window.ethereum.request({
-        method: 'wallet_requestPermissions',
-        params: [{ eth_accounts: {} }]
-      });
-
-      // Reload the page after account switch
-      window.location.reload();
-    } catch (error) {
-      console.error("Error switching accounts:", error);
-      // You might want to show an error message to the user here
-    }
-  };
 
   return (
     <>
       <Navbar
-      account={walletAddress}
+      account={account}
       balance={balance}
       />
       <D2 />

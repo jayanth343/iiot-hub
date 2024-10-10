@@ -108,7 +108,6 @@ const InstructionsComponent = ({
     setReceivedInstructions(readInstructions);
     for (let i = 0; i < readInstructions.length; i++) {
       let ac = readInstructions[i].sender;
-      await sleep(1000);
       const r = await myContract.methods.getInstr().call({ from: ac });
       if (r && r[readInstructions[i].indsx]) {
         let entry = {
@@ -124,7 +123,7 @@ const InstructionsComponent = ({
     //setReadIndexList(list);
     setTimeout(() => {
       setShowSkeleton(false);
-    }, 2000);
+    }, 1000);
     const sortedReadIndexList = list.sort((a, b) =>{
       if (a.isRead === b.isRead) {
         return 0;
@@ -306,7 +305,7 @@ const InstructionsComponent = ({
                         />
                       </ListItem>
                     </Box>
-                          <Dialog
+                    <Dialog
                       open={viewInstr}
                       onClose={handleClose}
                       PaperProps={{

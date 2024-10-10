@@ -16,6 +16,7 @@ import {
   Skeleton,
 } from "@mui/material";
 import AlertTitle from "@mui/material/AlertTitle";
+import  useStore  from "./store";
 import Snackbar from "@mui/material/Snackbar";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 const abi = require("./contracts/MyContractAbi.json");
@@ -28,11 +29,17 @@ function Home() {
   const [showBytecode, setShowBytecode] = useState(false);
   const [bytecode, setBytecode] = useState("");
   const [web3, setWeb3] = useState(null);
-  const [contract, setContract] = useState("");
   const [contA, setconA] = useState(false);
-  const [account, setAccount] = useState("");
-  const [balance, setBalance] = useState("");
-  const [accounts, setAccounts] = useState([]);
+  const account = useStore((state) => state.account);
+  const accounts = useStore((state) => state.accounts);
+  const contractAddress = useStore((state) => state.contractAddress);
+  const myContract = useStore((state) => state.myContract);
+  const balance = useStore((state) => state.balance);
+  const setAccount = useStore((state) => state.setAccount);
+  const setBalance = useStore((state) => state.setBalance);
+  const setContractAddress = useStore((state) => state.setContractAddress);
+  const setAccounts = useStore((state) => state.setAccounts);
+  const setMyContract = useStore((state) => state.setMyContract);
   const hweb3 = new Web3(
     "https://sepolia.infura.io/v3/7997091568f840f79ae9d88321a8dc1f"
   );
@@ -82,23 +89,7 @@ function Home() {
     setBalance(web3.utils.fromWei(v, "ether"));
   };
 
-  const MetaMaskConnect = async () => {
-    if (web3) {
-      try {
-        //await window.ethereum.enable();
-        await window.ethereum.request({
-          method: "eth_requestAccounts",
-        });
-        let accs = await web3.eth.getAccounts();
-        console.log(`ac list${accs}`);
-        setAccounts(accs);
-        console.log(accounts);
-        setContract(CONTRACT_ADDRESS);
-      } catch (error) {
-        console.error(`Error: ${error}`);
-      }
-    }
-  };
+
 
   const connectMetaMask = async () => {
     try {
@@ -113,13 +104,14 @@ function Home() {
 
         if (selectedAccount.length > 0) {
           setAccount(selectedAccount[0]);
+
           updateBalance(selectedAccount[0]);
           console.log(
             "Connected to MetaMask. Selected account:",
             selectedAccount[0]
           );
           setAccounts(selectedAccount);
-          setContract(CONTRACT_ADDRESS);
+          setContractAddress(CONTRACT_ADDRESS);
         } else {
           console.log(
             "No account selected in MetaMask. Please select an account."
@@ -142,8 +134,8 @@ function Home() {
   // End of Selection
 
   const firstsdeployContract = async () => {
-    if (contract !== "" && account !== "" && balance !== "") {
-      console.log("Contract already deployed at:", contract);
+    if (contractAddress !== "" && account !== "" && balance !== "") {
+      console.log("Contract already deployed at:", contractAddress);
       setconA(true);
       setOpen(true);
       return;
@@ -169,7 +161,7 @@ function Home() {
         gasPrice: GASPRICE,
       });
       console.log("Contract deployed at address: " + tx.options.address);
-      setContract(tx.options.address);
+      setContractAddress(tx.options.address);
     } catch (error) {
       console.log(error);
     }
@@ -338,7 +330,7 @@ function Home() {
         onClose={handleClose}
       >
         <Alert onClose={handleClose} severity="info" sx={{ width: "100%" }}>
-          Contract is already deployed at address: {contract}
+          Contract is already deployed at address: {contractAddress}
         </Alert>
       </Snackbar>
     </>
