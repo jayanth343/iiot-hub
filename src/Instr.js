@@ -226,12 +226,14 @@ const Instr = () => {
         sleep(1000);
         console.log("Done");
         setreadStatus(1);
+
       })
       .catch((err) => {
         console.log("Error marking instruction as read: ", err);
         setLoadState(false);
       });
     
+
   };
   return (
     <>

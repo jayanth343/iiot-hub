@@ -136,6 +136,7 @@ function Home() {
   const firstsdeployContract = async () => {
     if (contractAddress !== "" && account !== "" && balance !== "") {
       console.log("Contract already deployed at:", contractAddress);
+
       setconA(true);
       setOpen(true);
       return;

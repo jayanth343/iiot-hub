@@ -25,6 +25,7 @@ import  useStore  from "../store";
 const Navbar = ({ account, balance }) => {
   const pages = ["Home", "Access List", "Instructions", "Logs"];
   const settings = [ "Switch Account", "Logout"];
+
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const [anchorWallet, setAnchorWallet] = useState(null);
@@ -36,6 +37,7 @@ const Navbar = ({ account, balance }) => {
   const navigate = useNavigate();
   const setAccount = useStore((state) => state.setAccount);
   const setBalance = useStore((state) => state.setBalance);
+
   const handleOpenNavMenu = (event) => {
     setAnchorElNav(event.currentTarget);
   };
