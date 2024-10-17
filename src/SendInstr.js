@@ -37,19 +37,22 @@ import "@fontsource/roboto/300.css";
 import "@fontsource/roboto/400.css";
 import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
+import useStore from "./store";
 import abi from "./contracts/MyContractAbi.json";
 import AccessListComponent from "./AccessListComponent";
 function Sendinstr() {
   const navigate = useNavigate();
-  const [wallets, setWallets] = useState([]);
   const [accessList, setAccessList] = useState([]);
   const [instruction, setInstruction] = useState("");
   const [tempaddr, setTempaddr] = useState("");
-  const [account, setaccount] = useState("");
+  const [account, setAccount] = useState("");
+  const [alfetched, setAlfetched] = useState(false);
   const [balance, setBalance] = useState("");
   const [web3Instance, setWeb3Instance] = useState(null);
   const [contractAddress, setContractAddress] = useState("");
   const [myContract, setMyContract] = useState(null);
+  const setWallets = useStore((state) => state.setAccounts);
+  const wallets = useStore((state) => state.accounts);
   const [sendingInstr, setSendingInstr] = useState(false);
   const [sendingInstrAcc, setSendingInstrAcc] = useState("");
 
@@ -62,14 +65,17 @@ function Sendinstr() {
           const web3 = new Web3(window.ethereum);
           setWeb3Instance(web3);
           const accounts = await web3.eth.getAccounts();
-          setaccount(accounts[0]);
+          setAccount(accounts[0]);
           const balanceWei = await web3.eth.getBalance(accounts[0]);
           const balanceEth = web3.utils.fromWei(balanceWei, "ether");
+
           setBalance(balanceEth);
+          setContractAddress("0x417213E993FA352d287A1AeeFCD3B0E5F053DB97");
           window.ethereum.on("accountsChanged", (accounts) => {
-            setaccount(accounts[0]);
+            setAccount(accounts[0]);
           });
         } catch (error) {
+
           console.error("Error connecting to MetaMask", error);
         }
       } else {
@@ -79,7 +85,7 @@ function Sendinstr() {
 
     const initializeApp = async () => {
       await connectWallet();
-      setContractAddress("0x417213E993FA352d287A1AeeFCD3B0E5F053DB97"); //0x48Cd6D14407c2a485Beb94dB437b689a2C3927bc
+      //setContractAddress("0x417213E993FA352d287A1AeeFCD3B0E5F053DB97"); //0x48Cd6D14407c2a485Beb94dB437b689a2C3927bc
       const accounts = [
         "0xaC3fb9B59E57626aE1e9A4CA8ca10ff169dC2D8C",
         "0x5aD439688E4a5f2E13Af800938452EA945858598",
@@ -87,18 +93,18 @@ function Sendinstr() {
         "0xFa09771045DD25cb6c50227EfDED68777BC5d58D",
       ];
       setWallets(accounts);
-
+        
       // Wait for contract initialization
       await initContract();
 
       // Now fetch instructions
-      const fetchAL = async () => {
+/*      const fetchAL = async () => {
         if (myContract && account) {
           try {
             console.log("Exec alCount....");
             const al = await myContract.methods.alCount(account).call();
-            console.log("Calling alCount...", al);
-
+            console.log("Calling alCount...", al);  
+ 
             if (Array.isArray(al[0])) {
               console.log("Setting access list:", al[0]);
               setAccessList(al[0]);
@@ -113,6 +119,7 @@ function Sendinstr() {
       };
 
       fetchAL();
+      */
     };
 
     initializeApp().catch(console.error);
@@ -151,6 +158,7 @@ function Sendinstr() {
           console.log("Calling alCount...");
           console.log("Receipt:", al);
           setAccessList(al[0]);
+          setAlfetched(true);
           console.log(accessList);
         } catch (error) {
           console.error("Error fetching instructions:", error);
@@ -291,25 +299,7 @@ function Sendinstr() {
     }
   };
 
-  const handleSwitchAccount = async () => {
-    console.log("Switching Account");
-    try {
-      // Request account access if needed
-      await window.ethereum.request({ method: "eth_requestAccounts" });
 
-      // Prompt user to switch accounts
-      await window.ethereum.request({
-        method: "wallet_requestPermissions",
-        params: [{ eth_accounts: {} }],
-      });
-
-      // Reload the page after account switch
-      window.location.reload();
-    } catch (error) {
-      console.error("Error switching accounts:", error);
-      // You might want to show an error message to the user here
-    }
-  };
 
   return (
     <>

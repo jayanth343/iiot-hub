@@ -21,9 +21,11 @@ import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
 import FiberManualRecordIcon from "@mui/icons-material/FiberManualRecord";
 import { useNavigate } from "react-router-dom";
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
+import  useStore  from "../store";
 const Navbar = ({ account, balance }) => {
   const pages = ["Home", "Access List", "Instructions", "Logs"];
-  const settings = ["Profile", "Switch Account", "Logout"];
+  const settings = [ "Switch Account", "Logout"];
+
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const [anchorWallet, setAnchorWallet] = useState(null);
@@ -33,6 +35,9 @@ const Navbar = ({ account, balance }) => {
   const [ViewAcc, setViewAcc] = useState(false);
   const [ViewBal, setViewBal] = useState(false);
   const navigate = useNavigate();
+  const setAccount = useStore((state) => state.setAccount);
+  const setBalance = useStore((state) => state.setBalance);
+
   const handleOpenNavMenu = (event) => {
     setAnchorElNav(event.currentTarget);
   };
@@ -203,6 +208,8 @@ const Navbar = ({ account, balance }) => {
                     navigate("/send-instruction");
                   } else if (page === "Home") {
                     navigate("/dash");
+                  } else if (page === "Logs") {
+                    navigate("/logs");
                   } else {
                     handleCloseNavMenu();
                   }
@@ -241,6 +248,8 @@ const Navbar = ({ account, balance }) => {
                   key={setting}
                   onClick={() => {
                     if (setting === "Logout") {
+                      setAccount("");
+                      setBalance("");
                       navigate("/");
                     } else if (setting === "Switch Account") {
                       handleSwitchAccount();
